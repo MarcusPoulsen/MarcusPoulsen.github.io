@@ -142,6 +142,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     end_ts = df_power['time'].max()
     tariff_series = fetch_tariff_data(access, points, start_ts, end_ts)
 
+    # Ensure both merge columns are datetime
+    df_power['time'] = pd.to_datetime(df_power['time'])
+    df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
     # Merge power data with prices
     df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left')
 
