@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import plotly.graph_objects as go
 
 def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> pd.DataFrame:
@@ -67,10 +68,14 @@ def fetch_power_data(refresh_token: str):
                         for period in ts.get('Period', []):
                             start_str = period.get('timeInterval', {}).get('start', str(from_date))
                             start_date = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                            # Convert UTC to Copenhagen timezone
+                            start_date = start_date.astimezone(ZoneInfo('Europe/Copenhagen'))
                             
                             for idx, p in enumerate(period.get('Point', []), 0):
                                 qty = float(p.get('out_Quantity.quantity', 0))
-                                hour_time = start_date + timedelta(hours=idx)
+                                # Convert UTC to Copenhagen timezone
+                                cph_start = start_date.astimezone(ZoneInfo('Europe/Copenhagen'))
+                                hour_time = cph_start + timedelta(hours=idx)
                                 all_power_data.append({
                                     'time': hour_time,
                                     'usage_kwh': qty
