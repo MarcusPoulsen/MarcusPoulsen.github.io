@@ -83,7 +83,7 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
-def fetch_power_data(refresh_token: str, charge_threshold: float = 5.0, car_max_kwh: float = 11.0):
+def fetch_power_data(refresh_token: str, charge_threshold: float = 5.0, car_max_kwh: float = 11.0, from_date=None, to_date=None):
     """Fetch hourly power usage for last 30 days and merge with prices."""
     
     try:
@@ -101,12 +101,8 @@ def fetch_power_data(refresh_token: str, charge_threshold: float = 5.0, car_max_
                          headers={'Authorization': f'Bearer {access}'})
         points = [m['meteringPointId'] for m in r.json()['result']]
 
-        # Use provided from_date/to_date if set in outer scope (passed via closure),
-        # otherwise default to last 30 days
-        try:
-            from_date
-            to_date
-        except NameError:
+        # Use provided from_date/to_date parameters if provided, otherwise default to last 30 days
+        if from_date is None or to_date is None:
             to_date = datetime.now().date()
             from_date = to_date - timedelta(days=30)
 
@@ -242,10 +238,10 @@ car_max_kwh = st.number_input(
 )
 
 if st.button('📊 Fetch Data', type='primary'):
-    if not token:
-        st.error('Please enter a token')
-    else:
-        df = fetch_power_data(token, charge_threshold, car_max_kwh)
+        if not token:
+            st.error('Please enter a token')
+        else:
+            df = fetch_power_data(token, charge_threshold, car_max_kwh, from_date, to_date)
         
         if df is not None and not df.empty:
             st.success('✅ Data fetched successfully!')
