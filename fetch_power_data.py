@@ -59,11 +59,16 @@ def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, e
 
     return s
 
-def fetch_power_data(token_file='token.txt'):
-    """Fetch hourly power usage for last 30 days and merge with prices."""
-    
-    with open(token_file) as f:
-        refresh = f.read().strip()
+def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_kwh: float = 11.0, from_date=None, to_date=None):
+    """Fetch hourly power usage for a period and merge with prices.
+
+    If `refresh_token` is None, the function will read 'token.txt'.
+    """
+    if refresh_token is None:
+        with open('token.txt') as f:
+            refresh = f.read().strip()
+    else:
+        refresh = refresh_token
 
     # Get access token
     r = requests.get('https://api.eloverblik.dk/customerapi/api/token',
@@ -80,9 +85,10 @@ def fetch_power_data(token_file='token.txt'):
     points = [m['meteringPointId'] for m in r.json()['result']]
     print(f'Found {len(points)} metering point(s)\n')
 
-    # Get power data for last 30 days (HOURLY)
-    to_date = datetime.now().date()
-    from_date = to_date - timedelta(days=30)
+    # Determine date range
+    if to_date is None or from_date is None:
+        to_date = datetime.now().date() if to_date is None else to_date
+        from_date = (to_date - timedelta(days=30)) if from_date is None else from_date
 
     all_power_data = []
     
