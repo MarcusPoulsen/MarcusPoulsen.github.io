@@ -188,99 +188,72 @@ if not st.session_state['df_data'].empty:
             monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
             monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
             monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
-            # Allow per-month Clever reimbursement rate input and compute reimbursed/net totals
             st.markdown('### Månedligt opladningsoversigt')
 
-            reimbursed_vals = []
-            kwh_clever_vals = []
-            extra_kwh_vals = []
-            extra_cost_vals = []
-            udelad_vals = []
-            udelad_cost_vals = []
-            net_vals = []
-            adjusted_total_vals = []
-
+            # Prepare editable input columns for the table
+            clever_rate_col = []
+            clever_kwh_col = []
+            udeladning_kwh_col = []
             for i, r in monthly_table.iterrows():
                 m = r['month']
                 key_rate = f'clever_rate_{m}'
                 key_kwh = f'clever_kwh_{m}'
-
-                # Default rate/kWh to 0 or previous session value
-                rate_default = float(st.session_state.get(key_rate, 0.0))
-                kwh_default = float(st.session_state.get(key_kwh, r['kwh_charged']))
-
-                col_a, col_b, col_c = st.columns([2, 2, 2])
-                with col_a:
-                    st.write(m)
-                with col_b:
-                    st.write(f"{r['kwh_charged']:.2f} kWh (detected)")
-                with col_c:
-                    # reimbursement rate in DKK/kWh — use widget return value (widget stores into session_state)
-                    rate_val = st.number_input(f'Clever sats (DKK/kWh) for {m}', min_value=0.0, value=rate_default, format="%.2f", key=key_rate)
-
-                # Additional input: kWh according to Clever
-                kwh_col1, kwh_col2 = st.columns([2, 2])
-                with kwh_col1:
-                    kwh_clever = st.number_input(f'kWh ifølge Clever ({m})', min_value=0.0, value=kwh_default, format="%.2f", key=key_kwh)
-                with kwh_col2:
-                    st.write(f"Gennemsnitspris: {r['average_price']:.4f} DKK/kWh")
-
-                # Per-month 'udeladning kwh' input (discharge), priced at 3.5 DKK/kWh
                 key_udelad = f'udeladning_kwh_{m}'
-                udelad_default = float(st.session_state.get(key_udelad, 0.0))
-                u_col_a, u_col_b = st.columns([2, 2])
-                with u_col_a:
-                    udelad_kwh = st.number_input(f'Udeladning kWh ({m})', min_value=0.0, value=udelad_default, format="%.2f", key=key_udelad)
-                with u_col_b:
-                    st.write('Pris ved udeladning: 3.50 DKK/kWh')
+                clever_rate_col.append(float(st.session_state.get(key_rate, 0.0)))
+                clever_kwh_col.append(float(st.session_state.get(key_kwh, r['kwh_charged'])))
+                udeladning_kwh_col.append(float(st.session_state.get(key_udelad, 0.0)))
 
-                # Compute correction kWh (Clever reported minus detected) — allow negative
-                korrektion_kwh = float(kwh_clever) - float(r['kwh_charged'])
-                korrektion_cost = korrektion_kwh * float(r['average_price'])
+            # Add editable columns to the table
+            monthly_table['clever_rate'] = clever_rate_col
+            monthly_table['clever_kwh'] = clever_kwh_col
+            monthly_table['udeladning_kwh'] = udeladning_kwh_col
 
-                # Cost for udeladning at fixed rate (display only)
-                udelad_cost = float(udelad_kwh) * 3.5
+            # Use st.data_editor for a single input table
+            edited = st.data_editor(
+                monthly_table,
+                column_config={
+                    'clever_rate': st.column_config.NumberColumn('Clever sats (DKK/kWh)', min_value=0.0, step=0.01, format='%.2f'),
+                    'clever_kwh': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
+                    'udeladning_kwh': st.column_config.NumberColumn('Udeladning kWh', min_value=0.0, step=0.01, format='%.2f'),
+                },
+                disabled=['month', 'kwh_charged', 'average_price', 'total_price'],
+                hide_index=True,
+                use_container_width=True,
+                key='monthly_car_editor'
+            )
 
-                # Adjusted total price includes cost for the correction kWh priced at avg_price
-                # NOTE: udeladning cost is NOT included in adjusted_total per request
-                adjusted_total = float(r['total_price']) + korrektion_cost
+            # Save edited values back to session_state for persistence
+            for i, r in edited.iterrows():
+                m = r['month']
+                st.session_state[f'clever_rate_{m}'] = r['clever_rate']
+                st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
+                st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
 
-                reimbursed = float(kwh_clever) * float(rate_val)
-                net = adjusted_total - reimbursed
+            # Compute all derived columns for display and download
+            display_table = monthly_table.copy()
+            display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kwh_charged']
+            display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
+            display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
+            display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
+            display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
+            display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
+            display_table['clever_abbonnemnt'] = 799.0
+            display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
 
-                # Collect values for table
-                reimbursed_vals.append(reimbursed)
-                kwh_clever_vals.append(kwh_clever)
-                # store signed correction (can be negative)
-                extra_kwh_vals.append(korrektion_kwh)
-                extra_cost_vals.append(korrektion_cost)
-                # collect udeladning
-                udelad_vals.append(float(udelad_kwh))
-                udelad_cost_vals.append(udelad_cost)
-                adjusted_total_vals.append(adjusted_total)
-                net_vals.append(net)
-
-            monthly_table['kwh_clever'] = kwh_clever_vals
-            monthly_table['korrektion_kwh_clever'] = extra_kwh_vals
-            monthly_table['korrektion_cost'] = extra_cost_vals
-            monthly_table['udeladning_kwh'] = udelad_vals
-            monthly_table['udeladning_cost'] = udelad_cost_vals
-            monthly_table['adjusted_total'] = adjusted_total_vals
-            monthly_table['reimbursed'] = reimbursed_vals
-            monthly_table['net_price'] = net_vals
-            # fixed Clever abonnement per month (DKK)
-            monthly_table['clever_abbonnemnt'] = 799.0
-            # total cost if on Clever abonnement = net (adjusted - reimbursed) + abonnement
-            monthly_table['total_udgift_ved_clever_abbonemnt'] = monthly_table['net_price'] + monthly_table['clever_abbonnemnt']
-            # Place the udeladning columns at the far right and do not let them affect totals
-            display_table = monthly_table[[
-                'month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever',
+            # Show the calculated table below the editor
+            st.dataframe(display_table[[
+                'month', 'kwh_charged', 'clever_kwh', 'korrektion_kwh_clever',
                 'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
                 'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
                 'udeladning_kwh', 'udeladning_cost'
-            ]].copy()
-            st.dataframe(display_table, use_container_width=True)
-            csv = display_table.to_csv(index=False)
+            ]], use_container_width=True)
+
+            csv = display_table[[
+                'month', 'kwh_charged', 'clever_kwh', 'korrektion_kwh_clever',
+                'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
+                'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
+                'udeladning_kwh', 'udeladning_cost'
+            ]].to_csv(index=False)
             st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
         else:
             st.info('Ingen månedlig opladningsdata i valgt periode')
