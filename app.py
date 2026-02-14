@@ -355,7 +355,7 @@ if st.button('📊 Fetch Data', type='primary'):
                 # Plot: bar = cost, line = kWh
                 fig_car = go.Figure()
                 fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
-                fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='black')))
+                fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='red', width=3)))
                 fig_car.update_layout(
                     title='Daily Charge Cost and kWh',
                     xaxis_title='Date',
