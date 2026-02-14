@@ -2,6 +2,7 @@
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> pd.DataFrame:
     """Fetch hourly electricity prices from Elprisenligenu API."""
@@ -69,8 +70,9 @@ def fetch_power_data(token_file='token.txt'):
             for ts in doc.get('TimeSeries', []):
                 for period in ts.get('Period', []):
                     start_str = period.get('timeInterval', {}).get('start', str(from_date))
-                    # Parse ISO format with timezone
+                    # Parse ISO format with timezone (UTC) and convert to Copenhagen time
                     start_date = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                    start_date = start_date.astimezone(ZoneInfo('Europe/Copenhagen'))
                     
                     for idx, p in enumerate(period.get('Point', []), 0):
                         qty = float(p.get('out_Quantity.quantity', 0))
