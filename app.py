@@ -62,6 +62,27 @@ def fetch_tariff_data(access_token: str, points: list) -> float:
         return 0
 
 def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> pd.DataFrame:
+    """Fetch hourly electricity prices from Elprisenligenu API."""
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    all_data = []
+
+    for n in range((end - start).days + 1):
+        current = start + timedelta(days=n)
+        date_str = current.strftime("%Y/%m-%d")
+        url = f"https://www.elprisenligenu.dk/api/v1/prices/{date_str}_{zone}.json"
+
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            df = pd.DataFrame(data)[['time_start', 'DKK_per_kWh']]
+            df['time_start'] = pd.to_datetime(df['time_start'])
+            all_data.append(df)
+        except Exception as e:
+            st.warning(f"Failed to fetch prices for {date_str}")
+            
+    return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
 def fetch_power_data(refresh_token: str):
     """Fetch hourly power usage for last 30 days and merge with prices."""
