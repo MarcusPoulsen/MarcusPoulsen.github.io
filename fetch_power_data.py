@@ -144,7 +144,12 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
 
     # Ensure both merge columns are datetime
     df_power['time'] = pd.to_datetime(df_power['time'])
-    df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
+    try:
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
+    except Exception as e:
+        print('Error converting df_prices["time_start"] to datetime:', e)
+        print('Problematic values:', df_prices['time_start'].head(10).to_list())
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
     # Merge power data with prices
     df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left')
 
