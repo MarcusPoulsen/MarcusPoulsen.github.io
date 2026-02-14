@@ -357,8 +357,17 @@ if not st.session_state['df_data'].empty:
             monthly_table['adjusted_total'] = adjusted_total_vals
             monthly_table['reimbursed'] = reimbursed_vals
             monthly_table['net_price'] = net_vals
+            # fixed Clever abonnement per month (DKK)
+            monthly_table['clever_abbonnemnt'] = 799.0
+            # total cost if on Clever abonnement = net (adjusted - reimbursed) + abonnement
+            monthly_table['total_udgift_ved_clever_abbonemnt'] = monthly_table['net_price'] + monthly_table['clever_abbonnemnt']
             # Place the udeladning columns at the far right and do not let them affect totals
-            display_table = monthly_table[['month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever', 'average_price', 'total_price', 'korrektion_cost', 'adjusted_total', 'reimbursed', 'net_price', 'udeladning_kwh', 'udeladning_cost']].copy()
+            display_table = monthly_table[[
+                'month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever',
+                'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
+                'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
+                'udeladning_kwh', 'udeladning_cost'
+            ]].copy()
             st.dataframe(display_table, use_container_width=True)
             csv = display_table.to_csv(index=False)
             st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
