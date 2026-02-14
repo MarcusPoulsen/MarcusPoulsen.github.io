@@ -190,33 +190,37 @@ if not st.session_state['df_data'].empty:
             monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
             st.markdown('### Månedligt opladningsoversigt')
 
-            # Prepare editable input columns for the table
+            # Load Clever sats from CSV
+            clever_sats_df = pd.read_csv('clever_tilbagebetaling.csv')
+            clever_sats_dict = dict(zip(clever_sats_df['month'], clever_sats_df['sats']))
+
+            # Prepare editable input columns for the table (only clever_kwh and udeladning_kwh)
             clever_rate_col = []
             clever_kwh_col = []
             udeladning_kwh_col = []
             for i, r in monthly_table.iterrows():
                 m = r['month']
-                key_rate = f'clever_rate_{m}'
+                # Use sats from CSV, fallback to 0 if not found
+                clever_rate_col.append(float(clever_sats_dict.get(m, 0.0)))
                 key_kwh = f'clever_kwh_{m}'
                 key_udelad = f'udeladning_kwh_{m}'
-                clever_rate_col.append(float(st.session_state.get(key_rate, 0.0)))
                 clever_kwh_col.append(float(st.session_state.get(key_kwh, r['kwh_charged'])))
                 udeladning_kwh_col.append(float(st.session_state.get(key_udelad, 0.0)))
 
-            # Add editable columns to the table
+            # Add columns to the table
             monthly_table['clever_rate'] = clever_rate_col
             monthly_table['clever_kwh'] = clever_kwh_col
             monthly_table['udeladning_kwh'] = udeladning_kwh_col
 
-            # Use st.data_editor for a single input table
+            # Use st.data_editor for a single input table (only clever_kwh and udeladning_kwh editable)
             edited = st.data_editor(
                 monthly_table,
                 column_config={
-                    'clever_rate': st.column_config.NumberColumn('Clever sats (DKK/kWh)', min_value=0.0, step=0.01, format='%.2f'),
+                    'clever_rate': st.column_config.NumberColumn('Clever sats (DKK/kWh)', min_value=0.0, step=0.01, format='%.2f', disabled=True),
                     'clever_kwh': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
                     'udeladning_kwh': st.column_config.NumberColumn('Udeladning kWh', min_value=0.0, step=0.01, format='%.2f'),
                 },
-                disabled=['month', 'kwh_charged', 'average_price', 'total_price'],
+                disabled=['month', 'kwh_charged', 'average_price', 'total_price', 'clever_rate'],
                 hide_index=True,
                 use_container_width=True,
                 key='monthly_car_editor'
@@ -225,7 +229,6 @@ if not st.session_state['df_data'].empty:
             # Save edited values back to session_state for persistence
             for i, r in edited.iterrows():
                 m = r['month']
-                st.session_state[f'clever_rate_{m}'] = r['clever_rate']
                 st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
                 st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
 
