@@ -275,10 +275,10 @@ if not st.session_state['df_data'].empty:
                 with col_b:
                     st.write(f"{r['kwh_charged']:.2f} kWh")
                 with col_c:
-                    # reimbursement rate in DKK/kWh
-                    st.session_state[key_rate] = st.number_input(f'Clever sats (DKK/kWh) for {m}', min_value=0.0, value=float(st.session_state[key_rate]), format="%.2f", key=key_rate)
+                    # reimbursement rate in DKK/kWh — use widget return value (widget stores into session_state)
+                    rate_val = st.number_input(f'Clever sats (DKK/kWh) for {m}', min_value=0.0, value=float(st.session_state.get(key_rate, 0.0)), format="%.2f", key=key_rate)
 
-                reimbursed = float(st.session_state[key_rate]) * float(r['kwh_charged'])
+                reimbursed = float(rate_val) * float(r['kwh_charged'])
                 reimbursed_vals.append(reimbursed)
 
             monthly_table['reimbursed'] = reimbursed_vals
