@@ -51,10 +51,17 @@ st.title('⚡ Household Power Usage Dashboard')
 # Token input
 token = st.text_input('Eloverblik Refresh Token:', type='password')
 
+# Car charge detection settings
+col_threshold, col_max_kwh = st.columns(2)
+with col_threshold:
+    charge_threshold = st.number_input('Car charge speed (kW)', min_value=0.1, value=11.0, step=0.5, help='Minimum power usage to detect car charging')
+with col_max_kwh:
+    car_max_kwh = st.number_input('Car battery capacity (kWh)', min_value=1.0, value=90.0, step=1.0, help='Maximum kWh battery for car')
+
 if token:
     if 'df_data' not in st.session_state or st.session_state.get('last_token') != token:
         with st.spinner('Henter data...'):
-            df = fetch_power_data(refresh_token=token, charge_threshold=1.5, car_max_kwh=90)
+            df = fetch_power_data(refresh_token=token, charge_threshold=charge_threshold, car_max_kwh=car_max_kwh)
             st.session_state.df_data = df
             st.session_state.last_token = token
     else:
