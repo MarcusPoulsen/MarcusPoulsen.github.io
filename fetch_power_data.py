@@ -28,73 +28,36 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
 def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, end_ts: pd.Timestamp) -> pd.Series:
-    """Fetch tariffs and build an hourly series (DKK/kWh) between start_ts and end_ts.
+    """Load manual tariff CSV (`tariffs_manual.csv`) and build hourly series.
 
-    Returns a pandas Series indexed by hourly timestamps (Europe/Copenhagen).
+    CSV columns: month_start,month_end,hour_start,hour_end,price
+    month ranges may wrap (e.g. 10 to 3).
     """
+    idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
+    s = pd.Series(0.0, index=idx)
     try:
-        r = requests.post('https://api.eloverblik.dk/customerapi/api/meteringpoints/meteringpoint/getcharges',
-                          json={'meteringPoints': {'meteringPoint': points}},
-                          headers={'Authorization': f'Bearer {access_token}'})
-
-        if r.status_code != 200:
-            print(f'Warning: Could not fetch tariff data (Status: {r.status_code})')
-            # return zero series
-            idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
-            return pd.Series(0.0, index=idx)
-
-        data = r.json().get('result', [])
-
-        idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
-        s = pd.Series(0.0, index=idx)
-
-        for item in data:
-            result = item.get('result', {})
-            tariffs = result.get('tariffs', [])
-            for tariff in tariffs:
-                period_type = (tariff.get('periodType') or '').upper()
-                vfrom = tariff.get('validFromDate')
-                vto = tariff.get('validToDate')
-                if vfrom:
-                    try:
-                        vfrom_ts = pd.to_datetime(vfrom).tz_convert(ZoneInfo('Europe/Copenhagen')) if pd.to_datetime(vfrom).tzinfo is not None else pd.to_datetime(vfrom).tz_localize('UTC').tz_convert(ZoneInfo('Europe/Copenhagen'))
-                    except Exception:
-                        vfrom_ts = idx[0]
-                else:
-                    vfrom_ts = idx[0]
-                if vto:
-                    try:
-                        vto_ts = pd.to_datetime(vto).tz_convert(ZoneInfo('Europe/Copenhagen')) if pd.to_datetime(vto).tzinfo is not None else pd.to_datetime(vto).tz_localize('UTC').tz_convert(ZoneInfo('Europe/Copenhagen'))
-                    except Exception:
-                        vto_ts = idx[-1]
-                else:
-                    vto_ts = idx[-1]
-
-                # mask of dates where this tariff is valid
-                mask_dates = (s.index >= vfrom_ts.floor('H')) & (s.index <= vto_ts.ceil('H'))
-
-                prices = tariff.get('prices', []) or []
-                if period_type == 'HOUR':
-                    for p in prices:
-                        pos = p.get('position')
-                        price = float(p.get('price', 0) or 0)
-                        try:
-                            hour = (int(pos) - 1) % 24
-                        except Exception:
-                            continue
-                        s.loc[mask_dates & (s.index.hour == hour)] += price
-                else:
-                    # DAY or other -> apply first price to all hours in valid range
-                    price = 0.0
-                    if prices:
-                        price = float(prices[0].get('price', 0) or 0)
-                    s.loc[mask_dates] += price
-
-        return s
+        tariffs = pd.read_csv('tariffs_manual.csv')
     except Exception as e:
-        print(f'Error fetching tariff data: {str(e)}')
-        idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
-        return pd.Series(0.0, index=idx)
+        print('Could not read tariffs_manual.csv:', e)
+        return s
+
+    for _, row in tariffs.iterrows():
+        ms = int(row['month_start'])
+        me = int(row['month_end'])
+        hs = int(row['hour_start'])
+        he = int(row['hour_end'])
+        price = float(row['price'])
+
+        if ms <= me:
+            month_mask = (s.index.month >= ms) & (s.index.month <= me)
+        else:
+            month_mask = (s.index.month >= ms) | (s.index.month <= me)
+
+        hour_mask = (s.index.hour >= hs) & (s.index.hour < he)
+        mask = month_mask & hour_mask
+        s.loc[mask] = price
+
+    return s
 
 def fetch_power_data(token_file='token.txt'):
     """Fetch hourly power usage for last 30 days and merge with prices."""
