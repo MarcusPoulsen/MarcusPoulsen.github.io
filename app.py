@@ -327,11 +327,12 @@ if not st.session_state['df_data'].empty:
                 korrektion_kwh = float(kwh_clever) - float(r['kwh_charged'])
                 korrektion_cost = korrektion_kwh * float(r['average_price'])
 
-                # Cost for udeladning at fixed rate
+                # Cost for udeladning at fixed rate (display only)
                 udelad_cost = float(udelad_kwh) * 3.5
 
-                # Adjusted total price includes cost for the correction kWh priced at avg_price and udeladning cost
-                adjusted_total = float(r['total_price']) + korrektion_cost + udelad_cost
+                # Adjusted total price includes cost for the correction kWh priced at avg_price
+                # NOTE: udeladning cost is NOT included in adjusted_total per request
+                adjusted_total = float(r['total_price']) + korrektion_cost
 
                 reimbursed = float(kwh_clever) * float(rate_val)
                 net = adjusted_total - reimbursed
@@ -356,7 +357,8 @@ if not st.session_state['df_data'].empty:
             monthly_table['adjusted_total'] = adjusted_total_vals
             monthly_table['reimbursed'] = reimbursed_vals
             monthly_table['net_price'] = net_vals
-            display_table = monthly_table[['month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever', 'udeladning_kwh', 'average_price', 'total_price', 'korrektion_cost', 'udeladning_cost', 'adjusted_total', 'reimbursed', 'net_price']].copy()
+            # Place the udeladning columns at the far right and do not let them affect totals
+            display_table = monthly_table[['month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever', 'average_price', 'total_price', 'korrektion_cost', 'adjusted_total', 'reimbursed', 'net_price', 'udeladning_kwh', 'udeladning_cost']].copy()
             st.dataframe(display_table, use_container_width=True)
             csv = display_table.to_csv(index=False)
             st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
