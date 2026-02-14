@@ -27,38 +27,74 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
-def fetch_tariff_data(access_token: str, points: list) -> float:
-    """Fetch average tariff price (DKK/kWh) from Eloverblik API."""
+def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, end_ts: pd.Timestamp) -> pd.Series:
+    """Fetch tariffs and build an hourly series (DKK/kWh) between start_ts and end_ts.
+
+    Returns a pandas Series indexed by hourly timestamps (Europe/Copenhagen).
+    """
     try:
         r = requests.post('https://api.eloverblik.dk/customerapi/api/meteringpoints/meteringpoint/getcharges',
                           json={'meteringPoints': {'meteringPoint': points}},
                           headers={'Authorization': f'Bearer {access_token}'})
-        
+
         if r.status_code != 200:
             print(f'Warning: Could not fetch tariff data (Status: {r.status_code})')
-            return 0
-        
+            # return zero series
+            idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
+            return pd.Series(0.0, index=idx)
+
         data = r.json().get('result', [])
-        if not data:
-            return 0
-        
-        # Get all tariff prices and calculate average
-        tariff_prices = []
+
+        idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
+        s = pd.Series(0.0, index=idx)
+
         for item in data:
             result = item.get('result', {})
             tariffs = result.get('tariffs', [])
             for tariff in tariffs:
-                prices = tariff.get('prices', [])
-                for price_item in prices:
-                    price = price_item.get('price', 0)
-                    if price:
-                        tariff_prices.append(float(price))
-        
-        # Return average tariff price
-        return sum(tariff_prices) / len(tariff_prices) if tariff_prices else 0
+                period_type = (tariff.get('periodType') or '').upper()
+                vfrom = tariff.get('validFromDate')
+                vto = tariff.get('validToDate')
+                if vfrom:
+                    try:
+                        vfrom_ts = pd.to_datetime(vfrom).tz_convert(ZoneInfo('Europe/Copenhagen')) if pd.to_datetime(vfrom).tzinfo is not None else pd.to_datetime(vfrom).tz_localize('UTC').tz_convert(ZoneInfo('Europe/Copenhagen'))
+                    except Exception:
+                        vfrom_ts = idx[0]
+                else:
+                    vfrom_ts = idx[0]
+                if vto:
+                    try:
+                        vto_ts = pd.to_datetime(vto).tz_convert(ZoneInfo('Europe/Copenhagen')) if pd.to_datetime(vto).tzinfo is not None else pd.to_datetime(vto).tz_localize('UTC').tz_convert(ZoneInfo('Europe/Copenhagen'))
+                    except Exception:
+                        vto_ts = idx[-1]
+                else:
+                    vto_ts = idx[-1]
+
+                # mask of dates where this tariff is valid
+                mask_dates = (s.index >= vfrom_ts.floor('H')) & (s.index <= vto_ts.ceil('H'))
+
+                prices = tariff.get('prices', []) or []
+                if period_type == 'HOUR':
+                    for p in prices:
+                        pos = p.get('position')
+                        price = float(p.get('price', 0) or 0)
+                        try:
+                            hour = (int(pos) - 1) % 24
+                        except Exception:
+                            continue
+                        s.loc[mask_dates & (s.index.hour == hour)] += price
+                else:
+                    # DAY or other -> apply first price to all hours in valid range
+                    price = 0.0
+                    if prices:
+                        price = float(prices[0].get('price', 0) or 0)
+                    s.loc[mask_dates] += price
+
+        return s
     except Exception as e:
         print(f'Error fetching tariff data: {str(e)}')
-        return 0
+        idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
+        return pd.Series(0.0, index=idx)
 
 def fetch_power_data(token_file='token.txt'):
     """Fetch hourly power usage for last 30 days and merge with prices."""
@@ -131,15 +167,22 @@ def fetch_power_data(token_file='token.txt'):
         print('Warning: Could not fetch price data')
         return df_power
     
-    # Fetch tariff prices
+    # Fetch tariff prices (build hourly series)
     print('Fetching tariff prices...')
-    tariff_price = fetch_tariff_data(access, points)
-    
+    start_ts = df_power['time'].min()
+    end_ts = df_power['time'].max()
+    tariff_series = fetch_tariff_data(access, points, start_ts, end_ts)
+
     # Merge power data with prices
     df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left')
-    
-    # Add tariff column
-    df_merged['tariff_dkk_per_kwh'] = tariff_price
+
+    # Add tariff column by aligning hourly tariff series
+    try:
+        tariff_series = tariff_series.tz_convert(ZoneInfo('Europe/Copenhagen'))
+    except Exception:
+        pass
+    df_merged = df_merged.sort_values('time')
+    df_merged['tariff_dkk_per_kwh'] = tariff_series.reindex(pd.DatetimeIndex(df_merged['time'])).fillna(0).values
     
     # Calculate costs
     df_merged['spot_cost_dkk'] = df_merged['usage_kwh'] * df_merged['DKK_per_kWh']
