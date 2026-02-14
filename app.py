@@ -83,7 +83,7 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
-def fetch_power_data(refresh_token: str):
+def fetch_power_data(refresh_token: str, charge_threshold: float = 5.0, car_max_kwh: float = 11.0):
     """Fetch hourly power usage for last 30 days and merge with prices."""
     
     try:
@@ -176,7 +176,15 @@ def fetch_power_data(refresh_token: str):
         df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'tariff_dkk_per_kwh', 'total_cost_dkk']].copy()
         df_result.columns = ['time', 'usage_kwh', 'spot_pris', 'tarif_pris', 'total_udgift']
         df_result = df_result.sort_values('time').reset_index(drop=True)
-        
+
+        # Detect car charging and allocate kWh
+        df_result['car_charging'] = df_result['usage_kwh'] >= float(charge_threshold)
+        df_result['car_kwh'] = 0.0
+        mask = df_result['car_charging']
+        if mask.any():
+            df_result.loc[mask, 'car_kwh'] = df_result.loc[mask, 'usage_kwh'].clip(upper=float(car_max_kwh))
+        df_result['house_kwh'] = df_result['usage_kwh'] - df_result['car_kwh']
+
         return df_result
         
     except Exception as e:
@@ -202,11 +210,27 @@ token = st.text_input(
     help='Your token is not stored and only used for this session'
 )
 
+# Inputs for electric car detection
+charge_threshold = st.number_input(
+    'Elbil oplader flag',
+    min_value=0.0,
+    value=5.0,
+    step=0.1,
+    help='Indsæt Kwh hvor du er sikker på at din elbil lader den time, fx 5 kwh hvis du ved at resten af huset max kan bruge 4,5 kwh'
+)
+car_max_kwh = st.number_input(
+    'Max opladningshastighed (kWh)',
+    min_value=0.0,
+    value=11.0,
+    step=0.1,
+    help='Maksimalt antal kWh bilen kan tage per time (fx 11)'
+)
+
 if st.button('📊 Fetch Data', type='primary'):
     if not token:
         st.error('Please enter a token')
     else:
-        df = fetch_power_data(token)
+        df = fetch_power_data(token, charge_threshold, car_max_kwh)
         
         if df is not None and not df.empty:
             st.success('✅ Data fetched successfully!')
