@@ -284,6 +284,8 @@ if not st.session_state['df_data'].empty:
             kwh_clever_vals = []
             extra_kwh_vals = []
             extra_cost_vals = []
+            udelad_vals = []
+            udelad_cost_vals = []
             net_vals = []
             adjusted_total_vals = []
 
@@ -312,12 +314,24 @@ if not st.session_state['df_data'].empty:
                 with kwh_col2:
                     st.write(f"Gennemsnitspris: {r['average_price']:.4f} DKK/kWh")
 
+                # Per-month 'udeladning kwh' input (discharge), priced at 3.5 DKK/kWh
+                key_udelad = f'udeladning_kwh_{m}'
+                udelad_default = float(st.session_state.get(key_udelad, 0.0))
+                u_col_a, u_col_b = st.columns([2, 2])
+                with u_col_a:
+                    udelad_kwh = st.number_input(f'Udeladning kWh ({m})', min_value=0.0, value=udelad_default, format="%.2f", key=key_udelad)
+                with u_col_b:
+                    st.write('Pris ved udeladning: 3.50 DKK/kWh')
+
                 # Compute correction kWh (Clever reported minus detected) — allow negative
                 korrektion_kwh = float(kwh_clever) - float(r['kwh_charged'])
                 korrektion_cost = korrektion_kwh * float(r['average_price'])
 
-                # Adjusted total price includes cost for the correction kWh priced at avg_price
-                adjusted_total = float(r['total_price']) + korrektion_cost
+                # Cost for udeladning at fixed rate
+                udelad_cost = float(udelad_kwh) * 3.5
+
+                # Adjusted total price includes cost for the correction kWh priced at avg_price and udeladning cost
+                adjusted_total = float(r['total_price']) + korrektion_cost + udelad_cost
 
                 reimbursed = float(kwh_clever) * float(rate_val)
                 net = adjusted_total - reimbursed
@@ -328,16 +342,21 @@ if not st.session_state['df_data'].empty:
                 # store signed correction (can be negative)
                 extra_kwh_vals.append(korrektion_kwh)
                 extra_cost_vals.append(korrektion_cost)
+                # collect udeladning
+                udelad_vals.append(float(udelad_kwh))
+                udelad_cost_vals.append(udelad_cost)
                 adjusted_total_vals.append(adjusted_total)
                 net_vals.append(net)
 
             monthly_table['kwh_clever'] = kwh_clever_vals
             monthly_table['korrektion_kwh_clever'] = extra_kwh_vals
             monthly_table['korrektion_cost'] = extra_cost_vals
+            monthly_table['udeladning_kwh'] = udelad_vals
+            monthly_table['udeladning_cost'] = udelad_cost_vals
             monthly_table['adjusted_total'] = adjusted_total_vals
             monthly_table['reimbursed'] = reimbursed_vals
             monthly_table['net_price'] = net_vals
-            display_table = monthly_table[['month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever', 'average_price', 'total_price', 'korrektion_cost', 'adjusted_total', 'reimbursed', 'net_price']].copy()
+            display_table = monthly_table[['month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever', 'udeladning_kwh', 'average_price', 'total_price', 'korrektion_cost', 'udeladning_cost', 'adjusted_total', 'reimbursed', 'net_price']].copy()
             st.dataframe(display_table, use_container_width=True)
             csv = display_table.to_csv(index=False)
             st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
