@@ -259,9 +259,33 @@ if not st.session_state['df_data'].empty:
             monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
             monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
             monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
+            # Allow per-month Clever reimbursement rate input and compute reimbursed/net totals
             st.markdown('### Månedligt opladningsoversigt')
-            st.dataframe(monthly_table, use_container_width=True)
-            csv = monthly_table.to_csv(index=False)
+
+            reimbursed_vals = []
+            for i, r in monthly_table.iterrows():
+                m = r['month']
+                key_rate = f'clever_rate_{m}'
+                if key_rate not in st.session_state:
+                    st.session_state[key_rate] = 0.0
+
+                col_a, col_b, col_c = st.columns([2, 2, 2])
+                with col_a:
+                    st.write(m)
+                with col_b:
+                    st.write(f"{r['kwh_charged']:.2f} kWh")
+                with col_c:
+                    # reimbursement rate in DKK/kWh
+                    st.session_state[key_rate] = st.number_input(f'Clever sats (DKK/kWh) for {m}', min_value=0.0, value=float(st.session_state[key_rate]), format="%.2f", key=key_rate)
+
+                reimbursed = float(st.session_state[key_rate]) * float(r['kwh_charged'])
+                reimbursed_vals.append(reimbursed)
+
+            monthly_table['reimbursed'] = reimbursed_vals
+            monthly_table['net_price'] = monthly_table['total_price'] - monthly_table['reimbursed']
+            display_table = monthly_table[['month', 'kwh_charged', 'average_price', 'total_price', 'reimbursed', 'net_price']].copy()
+            st.dataframe(display_table, use_container_width=True)
+            csv = display_table.to_csv(index=False)
             st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
         else:
             st.info('Ingen månedlig opladningsdata i valgt periode')
