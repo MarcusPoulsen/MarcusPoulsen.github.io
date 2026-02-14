@@ -198,10 +198,17 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
 
     print(f'\nFetched {len(df_result)} hours of data from {from_date} to {to_date}\n')
     print(df_result.to_string(index=False))
-    print(f'\nTotal usage: {df_result["usage_kwh"].sum():.2f} kWh')
-    print(f'Total spot cost: {(df_result["usage_kwh"] * df_result["spot_pris"]).sum():.2f} DKK')
-    print(f'Total tariff cost: {(df_result["usage_kwh"] * df_result["tarif_pris"]).sum():.2f} DKK')
-    print(f'Total cost: {df_result["total_udgift"].sum():.2f} DKK')
+    total_usage = df_result['usage_kwh'].sum()
+    total_spot = (df_result['usage_kwh'] * df_result['spot_pris']).sum()
+    total_tarif = (df_result['usage_kwh'] * df_result['tarif_pris']).sum()
+    total_afgift = (df_result['usage_kwh'] * df_result['afgift_pris']).sum()
+    total_cost = df_result['total_udgift'].sum()
+
+    print(f'\nTotal usage: {total_usage:.2f} kWh')
+    print(f'Total spot cost: {total_spot:.2f} DKK')
+    print(f'Total tariff cost: {total_tarif:.2f} DKK')
+    print(f'Total afgift (tax): {total_afgift:.2f} DKK')
+    print(f'Total cost (spot + tariff + afgift): {total_cost:.2f} DKK')
 
     return df_result
 
