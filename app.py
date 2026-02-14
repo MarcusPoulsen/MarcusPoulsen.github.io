@@ -249,7 +249,7 @@ if st.button('📊 Fetch Data', type='primary'):
             st.divider()
             
             # Tabs for different views
-            tab1, tab2, tab3, tab4 = st.tabs(['📈 Charts', '📋 Data Table', '📅 Daily Summary', '⏰ Hourly Stats'])
+            tab1, tab2, tab3, tab4, tab5 = st.tabs(['📈 Charts', '📋 Data Table', '📅 Daily Summary', '⏰ Hourly Stats', '🚗 Car Charge'])
             
             with tab1:
                 col1, col2 = st.columns(2)
@@ -326,3 +326,41 @@ if st.button('📊 Fetch Data', type='primary'):
                 st.markdown('**Insights:**')
                 peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
                 st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
+
+            with tab5:
+                # Car charge dashboard
+                df_car = df.copy()
+                # Ensure car_kwh exists
+                if 'car_kwh' not in df_car.columns:
+                    df_car['car_kwh'] = 0.0
+
+                # Compute car cost = car_kwh * (spot + tariff)
+                df_car['car_cost'] = df_car['car_kwh'] * (df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0))
+
+                daily_car = df_car.groupby(df_car['time'].dt.date).agg({
+                    'car_cost': 'sum',
+                    'car_kwh': 'sum'
+                }).reset_index()
+                daily_car.columns = ['date', 'total_charge_cost', 'total_charge_kwh']
+
+                # Metrics / callouts
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.metric('Total charge cost', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
+                with c2:
+                    st.metric('Total kWh charged', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
+
+                st.divider()
+
+                # Plot: bar = cost, line = kWh
+                fig_car = go.Figure()
+                fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
+                fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='black')))
+                fig_car.update_layout(
+                    title='Daily Charge Cost and kWh',
+                    xaxis_title='Date',
+                    yaxis=dict(title='Cost (DKK)'),
+                    yaxis2=dict(title='kWh', overlaying='y', side='right'),
+                    height=450
+                )
+                st.plotly_chart(fig_car, use_container_width=True)
