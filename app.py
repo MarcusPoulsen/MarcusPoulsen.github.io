@@ -131,183 +131,81 @@ if not st.session_state['df_data'].empty:
 
     # Tabs for different views (Car Charge first)
     tab1, tab2, tab3, tab4, tab5 = st.tabs(['🚗 Car Charge', '📈 Charts', '📋 Data Table', '📅 Daily Summary', '⏰ Hourly Stats'])
-            with tab1:
-                # --- Car Charge dashboard code (was tab5) ---
-                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab1')
-                df_tab = _filter_df_by_view_range(df, view_range)
 
-                # Car charge dashboard
-                df_car = df_tab.copy()
-                # Ensure car_kwh exists
-                if 'car_kwh' not in df_car.columns:
-                    df_car['car_kwh'] = 0.0
+    with tab1:
+        # --- Car Charge dashboard code (was tab5) ---
+        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab1')
+        df_tab = _filter_df_by_view_range(df, view_range)
 
-                # Compute car cost = car_kwh * (spot + tariff + afgift)
-                if 'afgift_pris' in df_car.columns:
-                    afgift_series = df_car['afgift_pris'].fillna(0)
-                else:
-                    afgift_series = 0.0
+        # Car charge dashboard
+        df_car = df_tab.copy()
+        # Ensure car_kwh exists
+        if 'car_kwh' not in df_car.columns:
+            df_car['car_kwh'] = 0.0
 
-                df_car['car_cost'] = df_car['car_kwh'] * (
-                    df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0) + afgift_series
-                )
+        # Compute car cost = car_kwh * (spot + tariff + afgift)
+        if 'afgift_pris' in df_car.columns:
+            afgift_series = df_car['afgift_pris'].fillna(0)
+        else:
+            afgift_series = 0.0
 
-                daily_car = df_car.groupby(df_car['time'].dt.date).agg({
-                    'car_cost': 'sum',
-                    'car_kwh': 'sum'
-                }).reset_index()
-                daily_car.columns = ['date', 'total_charge_cost', 'total_charge_kwh']
+        df_car['car_cost'] = df_car['car_kwh'] * (
+            df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0) + afgift_series
+        )
 
-                # Metrics / callouts
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.metric('Total charge cost', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
-                with c2:
-                    st.metric('Total kWh charged', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
+        daily_car = df_car.groupby(df_car['time'].dt.date).agg({
+            'car_cost': 'sum',
+            'car_kwh': 'sum'
+        }).reset_index()
+        daily_car.columns = ['date', 'total_charge_cost', 'total_charge_kwh']
 
-                st.divider()
+        # Metrics / callouts
+        c1, c2 = st.columns(2)
+        with c1:
+            st.metric('Total charge cost', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
+        with c2:
+            st.metric('Total kWh charged', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
 
-                # Plot: bar = cost, line = kWh
-                fig_car = go.Figure()
-                fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
-                fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='red', width=3)))
-                fig_car.update_layout(
-                    title='Daily Charge Cost and kWh',
-                    xaxis_title='Date',
-                    yaxis=dict(title='Cost (DKK)'),
-                    yaxis2=dict(title='kWh', overlaying='y', side='right'),
-                    height=450
-                )
-                st.plotly_chart(fig_car, use_container_width=True)
+        st.divider()
 
-                # Monthly aggregation table: month, kwh charged, average price (incl tariffs), total price
-                monthly_car = df_car.set_index('time').resample('M').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
-                if not monthly_car.empty:
-                    monthly_car['month'] = monthly_car['time'].dt.to_period('M').astype(str)
-                    monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
-                    monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
-                    monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
-                    # Allow per-month Clever reimbursement rate input and compute reimbursed/net totals
-                    st.markdown('### Månedligt opladningsoversigt')
+        # Plot: bar = cost, line = kWh
+        fig_car = go.Figure()
+        fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
+        fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='red', width=3)))
+        fig_car.update_layout(
+            title='Daily Charge Cost and kWh',
+            xaxis_title='Date',
+            yaxis=dict(title='Cost (DKK)'),
+            yaxis2=dict(title='kWh', overlaying='y', side='right'),
+            height=450
+        )
+        st.plotly_chart(fig_car, use_container_width=True)
 
-                    reimbursed_vals = []
-                    kwh_clever_vals = []
-                    extra_kwh_vals = []
-                    extra_cost_vals = []
-                    udelad_vals = []
-                    udelad_cost_vals = []
-                    net_vals = []
-                    adjusted_total_vals = []
+        # Monthly aggregation table: month, kwh charged, average price (incl tariffs), total price
+        monthly_car = df_car.set_index('time').resample('M').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
+        if not monthly_car.empty:
+            monthly_car['month'] = monthly_car['time'].dt.to_period('M').astype(str)
+            monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
+            monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
+            monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
+            # Allow per-month Clever reimbursement rate input and compute reimbursed/net totals
+            st.markdown('### Månedligt opladningsoversigt')
 
-                    for i, r in monthly_table.iterrows():
-                        m = r['month']
-                        key_rate = f'clever_rate_{m}'
-                        key_kwh = f'clever_kwh_{m}'
+            reimbursed_vals = []
+            kwh_clever_vals = []
+            extra_kwh_vals = []
+            extra_cost_vals = []
+            udelad_vals = []
+            udelad_cost_vals = []
+            net_vals = []
+            adjusted_total_vals = []
 
-                        # Default rate/kWh to 0 or previous session value
-                        rate_default = float(st.session_state.get(key_rate, 0.0))
-                        kwh_default = float(st.session_state.get(key_kwh, r['kwh_charged']))
+            for i, r in monthly_table.iterrows():
+                m = r['month']
+                key_rate = f'clever_rate_{m}'
+                key_kwh = f'clever_kwh_{m}'
 
-                        col_a, col_b, col_c = st.columns([2, 2, 2])
-                        with col_a:
-                            st.write(m)
-                        with col_b:
-                            st.write(f"{r['kwh_charged']:.2f} kWh (detected)")
-                        with col_c:
-                            # reimbursement rate in DKK/kWh — use widget return value (widget stores into session_state)
-                            rate_val = st.number_input(f'Clever sats (DKK/kWh) for {m}', min_value=0.0, value=rate_default, format="%.2f", key=key_rate)
-
-                        # Additional input: kWh according to Clever
-                        kwh_col1, kwh_col2 = st.columns([2, 2])
-                        with kwh_col1:
-                            kwh_clever = st.number_input(f'kWh ifølge Clever ({m})', min_value=0.0, value=kwh_default, format="%.2f", key=key_kwh)
-                        with kwh_col2:
-                            st.write(f"Gennemsnitspris: {r['average_price']:.4f} DKK/kWh")
-
-                        # Per-month 'udeladning kwh' input (discharge), priced at 3.5 DKK/kWh
-                        key_udelad = f'udeladning_kwh_{m}'
-                        udelad_default = float(st.session_state.get(key_udelad, 0.0))
-                        u_col_a, u_col_b = st.columns([2, 2])
-                        with u_col_a:
-                            udelad_kwh = st.number_input(f'Udeladning kWh ({m})', min_value=0.0, value=udelad_default, format="%.2f", key=key_udelad)
-                        with u_col_b:
-                            st.write('Pris ved udeladning: 3.50 DKK/kWh')
-
-                        # Compute correction kWh (Clever reported minus detected) — allow negative
-                        korrektion_kwh = float(kwh_clever) - float(r['kwh_charged'])
-                        korrektion_cost = korrektion_kwh * float(r['average_price'])
-
-                        # Cost for udeladning at fixed rate (display only)
-                        udelad_cost = float(udelad_kwh) * 3.5
-
-                        # Adjusted total price includes cost for the correction kWh priced at avg_price
-                        # NOTE: udeladning cost is NOT included in adjusted_total per request
-                        adjusted_total = float(r['total_price']) + korrektion_cost
-
-                        reimbursed = float(kwh_clever) * float(rate_val)
-                        net = adjusted_total - reimbursed
-
-                        # Collect values for table
-                        reimbursed_vals.append(reimbursed)
-                        kwh_clever_vals.append(kwh_clever)
-                        # store signed correction (can be negative)
-                        extra_kwh_vals.append(korrektion_kwh)
-                        extra_cost_vals.append(korrektion_cost)
-                        # collect udeladning
-                        udelad_vals.append(float(udelad_kwh))
-                        udelad_cost_vals.append(udelad_cost)
-                        adjusted_total_vals.append(adjusted_total)
-                        net_vals.append(net)
-
-                    monthly_table['kwh_clever'] = kwh_clever_vals
-                    monthly_table['korrektion_kwh_clever'] = extra_kwh_vals
-                    monthly_table['korrektion_cost'] = extra_cost_vals
-                    monthly_table['udeladning_kwh'] = udelad_vals
-                    monthly_table['udeladning_cost'] = udelad_cost_vals
-                    monthly_table['adjusted_total'] = adjusted_total_vals
-                    monthly_table['reimbursed'] = reimbursed_vals
-                    monthly_table['net_price'] = net_vals
-                    # fixed Clever abonnement per month (DKK)
-                    monthly_table['clever_abbonnemnt'] = 799.0
-                    # total cost if on Clever abonnement = net (adjusted - reimbursed) + abonnement
-                    monthly_table['total_udgift_ved_clever_abbonemnt'] = monthly_table['net_price'] + monthly_table['clever_abbonnemnt']
-                    # Place the udeladning columns at the far right and do not let them affect totals
-                    display_table = monthly_table[[
-                        'month', 'kwh_charged', 'kwh_clever', 'korrektion_kwh_clever',
-                        'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
-                        'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
-                        'udeladning_kwh', 'udeladning_cost'
-                    ]].copy()
-                    st.dataframe(display_table, use_container_width=True)
-                    csv = display_table.to_csv(index=False)
-                    st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
-                else:
-                    st.info('Ingen månedlig opladningsdata i valgt periode')
-
-            # --- The rest of the tabs: Charts, Data Table, Daily Summary, Hourly Stats ---
-            with tab2:
-                # (was tab1: Charts)
-                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab2')
-                df_tab = _filter_df_by_view_range(df, view_range)
-                # ...existing Charts code...
-
-            with tab3:
-                # (was tab2: Data Table)
-                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
-                df_tab = _filter_df_by_view_range(df, view_range)
-                # ...existing Data Table code...
-
-            with tab4:
-                # (was tab3: Daily Summary)
-                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab4')
-                df_tab = _filter_df_by_view_range(df, view_range)
-                # ...existing Daily Summary code...
-
-            with tab5:
-                # (was tab4: Hourly Stats)
-                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab5')
-                df_tab = _filter_df_by_view_range(df, view_range)
-                # ...existing Hourly Stats code...
+                # Default rate/kWh to 0 or previous session value
                 rate_default = float(st.session_state.get(key_rate, 0.0))
                 kwh_default = float(st.session_state.get(key_kwh, r['kwh_charged']))
 
@@ -386,3 +284,28 @@ if not st.session_state['df_data'].empty:
             st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
         else:
             st.info('Ingen månedlig opladningsdata i valgt periode')
+
+    # --- The rest of the tabs: Charts, Data Table, Daily Summary, Hourly Stats ---
+    with tab2:
+        # (was tab1: Charts)
+        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab2')
+        df_tab = _filter_df_by_view_range(df, view_range)
+        # ...existing Charts code...
+
+    with tab3:
+        # (was tab2: Data Table)
+        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
+        df_tab = _filter_df_by_view_range(df, view_range)
+        # ...existing Data Table code...
+
+    with tab4:
+        # (was tab3: Daily Summary)
+        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab4')
+        df_tab = _filter_df_by_view_range(df, view_range)
+        # ...existing Daily Summary code...
+
+    with tab5:
+        # (was tab4: Hourly Stats)
+        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab5')
+        df_tab = _filter_df_by_view_range(df, view_range)
+        # ...existing Hourly Stats code...
