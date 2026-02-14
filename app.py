@@ -231,3 +231,17 @@ if st.button('📊 Fetch Data', type='primary'):
                     height=450
                 )
                 st.plotly_chart(fig_car, use_container_width=True)
+
+                # Monthly aggregation table: month, kwh charged, average price (incl tariffs), total price
+                monthly_car = df_car.set_index('time').resample('M').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
+                if not monthly_car.empty:
+                    monthly_car['month'] = monthly_car['time'].dt.to_period('M').astype(str)
+                    monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
+                    monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
+                    monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
+                    st.markdown('### Månedligt opladningsoversigt')
+                    st.dataframe(monthly_table, use_container_width=True)
+                    csv = monthly_table.to_csv(index=False)
+                    st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
+                else:
+                    st.info('Ingen månedlig opladningsdata i valgt periode')
