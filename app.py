@@ -267,12 +267,21 @@ if st.button('📊 Fetch Data', type='primary'):
             tab1, tab2, tab3, tab4, tab5 = st.tabs(['📈 Charts', '📋 Data Table', '📅 Daily Summary', '⏰ Hourly Stats', '🚗 Car Charge'])
             
             with tab1:
+                # Per-tab view filter
+                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab1')
+                if isinstance(view_range, tuple) and len(view_range) == 2:
+                    vf_from, vf_to = view_range
+                else:
+                    vf_from = view_range
+                    vf_to = view_range
+                df_tab = df[(df['time'].dt.date >= vf_from) & (df['time'].dt.date <= vf_to)].copy()
+
                 col1, col2 = st.columns(2)
                 
                 with col1:
                     # Usage chart
                     fig1 = go.Figure()
-                    fig1.add_trace(go.Scatter(x=df['time'], y=df['usage_kwh'], 
+                    fig1.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['usage_kwh'], 
                                               mode='lines', name='Usage', fill='tozeroy'))
                     fig1.update_layout(title='Hourly Power Usage', xaxis_title='Time', 
                                       yaxis_title='Usage (kWh)', height=400)
@@ -281,16 +290,16 @@ if st.button('📊 Fetch Data', type='primary'):
                 with col2:
                     # Price chart (Spot + Tariff)
                     fig2 = go.Figure()
-                    fig2.add_trace(go.Scatter(x=df['time'], y=df['spot_pris'], 
+                    fig2.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['spot_pris'], 
                                               mode='lines', name='Spot Pris', line=dict(color='orange')))
-                    fig2.add_trace(go.Scatter(x=df['time'], y=df['tarif_pris'], 
+                    fig2.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['tarif_pris'], 
                                               mode='lines', name='Tarif Pris', line=dict(color='blue')))
                     fig2.update_layout(title='Hourly Electricity Prices', xaxis_title='Time', 
                                       yaxis_title='Price (DKK/kWh)', height=400)
                     st.plotly_chart(fig2, use_container_width=True)
                 
                 # Daily cost trend
-                daily_cost = df.groupby(df['time'].dt.date).agg({
+                daily_cost = df_tab.groupby(df_tab['time'].dt.date).agg({
                     'total_udgift': 'sum',
                     'usage_kwh': 'sum',
                     'spot_pris': 'mean',
@@ -305,10 +314,18 @@ if st.button('📊 Fetch Data', type='primary'):
                 st.plotly_chart(fig3, use_container_width=True)
             
             with tab2:
-                st.dataframe(df, use_container_width=True, height=600)
+                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab2')
+                if isinstance(view_range, tuple) and len(view_range) == 2:
+                    vf_from, vf_to = view_range
+                else:
+                    vf_from = view_range
+                    vf_to = view_range
+                df_tab = df[(df['time'].dt.date >= vf_from) & (df['time'].dt.date <= vf_to)].copy()
+
+                st.dataframe(df_tab, use_container_width=True, height=600)
                 
                 # Download button
-                csv = df.to_csv(index=False)
+                csv = df_tab.to_csv(index=False)
                 st.download_button(
                     label='📥 Download as CSV',
                     data=csv,
@@ -317,7 +334,15 @@ if st.button('📊 Fetch Data', type='primary'):
                 )
             
             with tab3:
-                daily_summary = df.groupby(df['time'].dt.date).agg({
+                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
+                if isinstance(view_range, tuple) and len(view_range) == 2:
+                    vf_from, vf_to = view_range
+                else:
+                    vf_from = view_range
+                    vf_to = view_range
+                df_tab = df[(df['time'].dt.date >= vf_from) & (df['time'].dt.date <= vf_to)].copy()
+
+                daily_summary = df_tab.groupby(df_tab['time'].dt.date).agg({
                     'usage_kwh': 'sum',
                     'total_udgift': 'sum',
                     'spot_pris': 'mean',
@@ -327,7 +352,15 @@ if st.button('📊 Fetch Data', type='primary'):
                 st.dataframe(daily_summary, use_container_width=True)
             
             with tab4:
-                hourly_stats = df.copy()
+                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab4')
+                if isinstance(view_range, tuple) and len(view_range) == 2:
+                    vf_from, vf_to = view_range
+                else:
+                    vf_from = view_range
+                    vf_to = view_range
+                df_tab = df[(df['time'].dt.date >= vf_from) & (df['time'].dt.date <= vf_to)].copy()
+
+                hourly_stats = df_tab.copy()
                 hourly_stats['hour_of_day'] = hourly_stats['time'].dt.hour
                 avg_by_hour = hourly_stats.groupby('hour_of_day').agg({
                     'usage_kwh': 'mean',
@@ -339,12 +372,21 @@ if st.button('📊 Fetch Data', type='primary'):
                 st.dataframe(avg_by_hour, use_container_width=True)
                 
                 st.markdown('**Insights:**')
-                peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
-                st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
+                if not hourly_stats.empty:
+                    peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
+                    st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
 
             with tab5:
+                view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab5')
+                if isinstance(view_range, tuple) and len(view_range) == 2:
+                    vf_from, vf_to = view_range
+                else:
+                    vf_from = view_range
+                    vf_to = view_range
+                df_tab = df[(df['time'].dt.date >= vf_from) & (df['time'].dt.date <= vf_to)].copy()
+
                 # Car charge dashboard
-                df_car = df.copy()
+                df_car = df_tab.copy()
                 # Ensure car_kwh exists
                 if 'car_kwh' not in df_car.columns:
                     df_car['car_kwh'] = 0.0
