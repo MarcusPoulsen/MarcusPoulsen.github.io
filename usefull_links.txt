@@ -1,0 +1,7 @@
+https://api.eloverblik.dk/CustomerApi/index.html
+
+https://www.elprisenligenu.dk/elpris-api
+
+https://cerius.dk/priser/
+
+https://www.ok.dk/privat/produkter/el/viden/netselskab-hvem-leverer-min-stroem?gad_source=1&gad_campaignid=907582243&gbraid=0AAAAADtDodlgAGp2vn6HUpTDxHkSlUvvT&gclid=Cj0KCQiA18DMBhDeARIsABtYwT0lfmNjIhjLKO0YSzq7p6mX_Vnn9s8Ajum9bXUzbxRDBQ2jAHZDozYaAoofEALw_wcB
