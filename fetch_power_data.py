@@ -27,6 +27,39 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
+def fetch_tariff_data(access_token: str, points: list) -> float:
+    """Fetch average tariff price (DKK/kWh) from Eloverblik API."""
+    try:
+        r = requests.post('https://api.eloverblik.dk/customerapi/api/meteringpoints/meteringpoint/getcharges',
+                          json={'meteringPoints': {'meteringPoint': points}},
+                          headers={'Authorization': f'Bearer {access_token}'})
+        
+        if r.status_code != 200:
+            print(f'Warning: Could not fetch tariff data (Status: {r.status_code})')
+            return 0
+        
+        data = r.json().get('result', [])
+        if not data:
+            return 0
+        
+        # Get all tariff prices and calculate average
+        tariff_prices = []
+        for item in data:
+            result = item.get('result', {})
+            tariffs = result.get('tariffs', [])
+            for tariff in tariffs:
+                prices = tariff.get('prices', [])
+                for price_item in prices:
+                    price = price_item.get('price', 0)
+                    if price:
+                        tariff_prices.append(float(price))
+        
+        # Return average tariff price
+        return sum(tariff_prices) / len(tariff_prices) if tariff_prices else 0
+    except Exception as e:
+        print(f'Error fetching tariff data: {str(e)}')
+        return 0
+
 def fetch_power_data(token_file='token.txt'):
     """Fetch hourly power usage for last 30 days and merge with prices."""
     
@@ -94,19 +127,36 @@ def fetch_power_data(token_file='token.txt'):
     print('Fetching electricity prices...')
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
     
+    if df_prices.empty:
+        print('Warning: Could not fetch price data')
+        return df_power
+    
+    # Fetch tariff prices
+    print('Fetching tariff prices...')
+    tariff_price = fetch_tariff_data(access, points)
+    
     # Merge power data with prices
     df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left')
-    df_merged['cost_dkk'] = df_merged['usage_kwh'] * df_merged['DKK_per_kWh']
+    
+    # Add tariff column
+    df_merged['tariff_dkk_per_kwh'] = tariff_price
+    
+    # Calculate costs
+    df_merged['spot_cost_dkk'] = df_merged['usage_kwh'] * df_merged['DKK_per_kWh']
+    df_merged['tariff_cost_dkk'] = df_merged['usage_kwh'] * df_merged['tariff_dkk_per_kwh']
+    df_merged['total_cost_dkk'] = df_merged['spot_cost_dkk'] + df_merged['tariff_cost_dkk']
     
     # Select and order columns
-    df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'cost_dkk']].copy()
-    df_result.columns = ['hour', 'usage_kwh', 'price_dkk_per_kwh', 'cost_dkk']
-    df_result = df_result.sort_values('hour').reset_index(drop=True)
+    df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'tariff_dkk_per_kwh', 'total_cost_dkk']].copy()
+    df_result.columns = ['time', 'usage_kwh', 'spot_pris', 'tarif_pris', 'total_udgift']
+    df_result = df_result.sort_values('time').reset_index(drop=True)
     
     print(f'\nFetched {len(df_result)} hours of data from {from_date} to {to_date}\n')
     print(df_result.to_string(index=False))
     print(f'\nTotal usage: {df_result["usage_kwh"].sum():.2f} kWh')
-    print(f'Total cost: {df_result["cost_dkk"].sum():.2f} DKK')
+    print(f'Total spot cost: {(df_result["usage_kwh"] * df_result["spot_pris"]).sum():.2f} DKK')
+    print(f'Total tariff cost: {(df_result["usage_kwh"] * df_result["tarif_pris"]).sum():.2f} DKK')
+    print(f'Total cost: {df_result["total_udgift"].sum():.2f} DKK')
     
     return df_result
 

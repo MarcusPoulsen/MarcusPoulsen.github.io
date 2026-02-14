@@ -28,6 +28,41 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
+def fetch_tariff_data(access_token: str, points: list) -> float:
+    """Fetch average tariff price (DKK/kWh) from Eloverblik API."""
+    try:
+        r = requests.post('https://api.eloverblik.dk/customerapi/api/meteringpoints/meteringpoint/getcharges',
+                          json={'meteringPoints': {'meteringPoint': points}},
+                          headers={'Authorization': f'Bearer {access_token}'})
+        
+        if r.status_code != 200:
+            st.warning('Could not fetch tariff data')
+            return 0
+        
+        data = r.json().get('result', [])
+        if not data:
+            return 0
+        
+        # Get all tariff prices and calculate average
+        tariff_prices = []
+        for item in data:
+            result = item.get('result', {})
+            tariffs = result.get('tariffs', [])
+            for tariff in tariffs:
+                prices = tariff.get('prices', [])
+                for price_item in prices:
+                    price = price_item.get('price', 0)
+                    if price:
+                        tariff_prices.append(float(price))
+        
+        # Return average tariff price
+        return sum(tariff_prices) / len(tariff_prices) if tariff_prices else 0
+    except Exception as e:
+        st.warning(f'Error fetching tariff data: {str(e)}')
+        return 0
+
+def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> pd.DataFrame:
+
 def fetch_power_data(refresh_token: str):
     """Fetch hourly power usage for last 30 days and merge with prices."""
     
@@ -96,14 +131,25 @@ def fetch_power_data(refresh_token: str):
             st.warning('Could not fetch price data')
             return df_power
 
+        # Fetch tariff prices
+        with st.spinner('Fetching tariff prices...'):
+            tariff_price = fetch_tariff_data(access, points)
+        
         # Merge power data with prices
         df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left')
-        df_merged['cost_dkk'] = df_merged['usage_kwh'] * df_merged['DKK_per_kWh']
+        
+        # Add tariff column
+        df_merged['tariff_dkk_per_kwh'] = tariff_price
+        
+        # Calculate costs
+        df_merged['spot_cost_dkk'] = df_merged['usage_kwh'] * df_merged['DKK_per_kWh']
+        df_merged['tariff_cost_dkk'] = df_merged['usage_kwh'] * df_merged['tariff_dkk_per_kwh']
+        df_merged['total_cost_dkk'] = df_merged['spot_cost_dkk'] + df_merged['tariff_cost_dkk']
         
         # Select and order columns
-        df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'cost_dkk']].copy()
-        df_result.columns = ['hour', 'usage_kwh', 'price_dkk_per_kwh', 'cost_dkk']
-        df_result = df_result.sort_values('hour').reset_index(drop=True)
+        df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'tariff_dkk_per_kwh', 'total_cost_dkk']].copy()
+        df_result.columns = ['time', 'usage_kwh', 'spot_pris', 'tarif_pris', 'total_udgift']
+        df_result = df_result.sort_values('time').reset_index(drop=True)
         
         return df_result
         
@@ -144,11 +190,11 @@ if st.button('📊 Fetch Data', type='primary'):
             with col1:
                 st.metric('Total Usage', f"{df['usage_kwh'].sum():.1f} kWh")
             with col2:
-                st.metric('Total Cost', f"{df['cost_dkk'].sum():.2f} DKK")
+                st.metric('Total Cost', f"{df['total_udgift'].sum():.2f} DKK")
             with col3:
-                st.metric('Avg Daily Cost', f"{df.groupby(df['hour'].dt.date)['cost_dkk'].sum().mean():.2f} DKK")
+                st.metric('Avg Daily Cost', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
             with col4:
-                st.metric('Avg Hourly Price', f"{df['price_dkk_per_kwh'].mean():.3f} DKK/kWh")
+                st.metric('Avg Spot Price', f"{df['spot_pris'].mean():.3f} DKK/kWh")
             
             st.divider()
             
@@ -161,31 +207,35 @@ if st.button('📊 Fetch Data', type='primary'):
                 with col1:
                     # Usage chart
                     fig1 = go.Figure()
-                    fig1.add_trace(go.Scatter(x=df['hour'], y=df['usage_kwh'], 
+                    fig1.add_trace(go.Scatter(x=df['time'], y=df['usage_kwh'], 
                                               mode='lines', name='Usage', fill='tozeroy'))
                     fig1.update_layout(title='Hourly Power Usage', xaxis_title='Time', 
                                       yaxis_title='Usage (kWh)', height=400)
                     st.plotly_chart(fig1, use_container_width=True)
                 
                 with col2:
-                    # Price chart
+                    # Price chart (Spot + Tariff)
                     fig2 = go.Figure()
-                    fig2.add_trace(go.Scatter(x=df['hour'], y=df['price_dkk_per_kwh'], 
-                                              mode='lines', name='Price', line=dict(color='orange')))
+                    fig2.add_trace(go.Scatter(x=df['time'], y=df['spot_pris'], 
+                                              mode='lines', name='Spot Pris', line=dict(color='orange')))
+                    fig2.add_trace(go.Scatter(x=df['time'], y=df['tarif_pris'], 
+                                              mode='lines', name='Tarif Pris', line=dict(color='blue')))
                     fig2.update_layout(title='Hourly Electricity Prices', xaxis_title='Time', 
                                       yaxis_title='Price (DKK/kWh)', height=400)
                     st.plotly_chart(fig2, use_container_width=True)
                 
                 # Daily cost trend
-                daily_cost = df.groupby(df['hour'].dt.date).agg({
-                    'cost_dkk': 'sum',
-                    'usage_kwh': 'sum'
+                daily_cost = df.groupby(df['time'].dt.date).agg({
+                    'total_udgift': 'sum',
+                    'usage_kwh': 'sum',
+                    'spot_pris': 'mean',
+                    'tarif_pris': 'mean'
                 }).reset_index()
-                daily_cost.columns = ['date', 'cost_dkk', 'usage_kwh']
+                daily_cost.columns = ['date', 'total_cost', 'usage_kwh', 'avg_spot', 'avg_tarif']
                 
                 fig3 = go.Figure()
-                fig3.add_trace(go.Bar(x=daily_cost['date'], y=daily_cost['cost_dkk'], name='Daily Cost'))
-                fig3.update_layout(title='Daily Cost Trend', xaxis_title='Date', 
+                fig3.add_trace(go.Bar(x=daily_cost['date'], y=daily_cost['total_cost'], name='Daily Cost'))
+                fig3.update_layout(title='Daily Total Cost Trend', xaxis_title='Date', 
                                   yaxis_title='Cost (DKK)', height=400)
                 st.plotly_chart(fig3, use_container_width=True)
             
@@ -202,25 +252,27 @@ if st.button('📊 Fetch Data', type='primary'):
                 )
             
             with tab3:
-                daily_summary = df.groupby(df['hour'].dt.date).agg({
+                daily_summary = df.groupby(df['time'].dt.date).agg({
                     'usage_kwh': 'sum',
-                    'cost_dkk': 'sum',
-                    'price_dkk_per_kwh': 'mean'
+                    'total_udgift': 'sum',
+                    'spot_pris': 'mean',
+                    'tarif_pris': 'first'
                 }).reset_index()
-                daily_summary.columns = ['Date', 'Usage (kWh)', 'Cost (DKK)', 'Avg Price (DKK/kWh)']
+                daily_summary.columns = ['Date', 'Usage (kWh)', 'Total Cost (DKK)', 'Avg Spot Pris', 'Tarif Pris']
                 st.dataframe(daily_summary, use_container_width=True)
             
             with tab4:
                 hourly_stats = df.copy()
-                hourly_stats['hour_of_day'] = hourly_stats['hour'].dt.hour
+                hourly_stats['hour_of_day'] = hourly_stats['time'].dt.hour
                 avg_by_hour = hourly_stats.groupby('hour_of_day').agg({
                     'usage_kwh': 'mean',
-                    'price_dkk_per_kwh': 'mean',
-                    'cost_dkk': 'mean'
+                    'spot_pris': 'mean',
+                    'tarif_pris': 'first',
+                    'total_udgift': 'mean'
                 }).reset_index()
-                avg_by_hour.columns = ['Hour', 'Avg Usage (kWh)', 'Avg Price (DKK/kWh)', 'Avg Cost (DKK)']
+                avg_by_hour.columns = ['Hour', 'Avg Usage (kWh)', 'Avg Spot Pris', 'Tarif Pris', 'Avg Total Cost (DKK)']
                 st.dataframe(avg_by_hour, use_container_width=True)
                 
                 st.markdown('**Insights:**')
-                peak_hour = hourly_stats.groupby('hour_of_day')['price_dkk_per_kwh'].mean().idxmax()
-                st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["price_dkk_per_kwh"].mean():.3f} DKK/kWh)')
+                peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
+                st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
