@@ -101,9 +101,14 @@ def fetch_power_data(refresh_token: str, charge_threshold: float = 5.0, car_max_
                          headers={'Authorization': f'Bearer {access}'})
         points = [m['meteringPointId'] for m in r.json()['result']]
 
-        # Get power data for last 30 days (HOURLY)
-        to_date = datetime.now().date()
-        from_date = to_date - timedelta(days=30)
+        # Use provided from_date/to_date if set in outer scope (passed via closure),
+        # otherwise default to last 30 days
+        try:
+            from_date
+            to_date
+        except NameError:
+            to_date = datetime.now().date()
+            from_date = to_date - timedelta(days=30)
 
         all_power_data = []
         
@@ -194,6 +199,16 @@ def fetch_power_data(refresh_token: str, charge_threshold: float = 5.0, car_max_
 # Streamlit UI
 st.set_page_config(page_title='Power Usage Monitor', layout='wide')
 st.title('⚡ Power Usage & Cost Monitor')
+
+# Date range selector for period filtering
+today = datetime.now().date()
+default_from = today - timedelta(days=30)
+date_range = st.date_input('Periode', value=(default_from, today), help='Vælg start- og slutdato for perioden')
+if isinstance(date_range, tuple) and len(date_range) == 2:
+    from_date, to_date = date_range
+else:
+    from_date = date_range
+    to_date = date_range
 
 col1, col2 = st.columns([2, 1])
 with col1:
