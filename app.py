@@ -184,7 +184,8 @@ if not st.session_state['df_data'].empty:
         # Monthly aggregation table: month, kwh charged, average price (incl tariffs), total price
         monthly_car = df_car.set_index('time').resample('M').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
         if not monthly_car.empty:
-            monthly_car['month'] = monthly_car['time'].dt.to_period('M').astype(str)
+            # Format month as MM-YY to match clever_tilbagebetaling.csv
+            monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
             monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
             monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
             monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
@@ -192,29 +193,30 @@ if not st.session_state['df_data'].empty:
 
             # Load Clever sats from CSV
             clever_sats_df = pd.read_csv('clever_tilbagebetaling.csv')
-            clever_sats_dict = dict(zip(clever_sats_df['month'], clever_sats_df['sats']))
+            # Ensure month column is string and in MM-YY format
+            clever_sats_df['month'] = clever_sats_df['month'].astype(str)
+
+            # Merge monthly_table with clever_sats_df on 'month'
+            merged = pd.merge(monthly_table, clever_sats_df, on='month', how='left')
+            merged['sats'] = merged['sats'].astype(float).fillna(0.0)
+            merged = merged.rename(columns={'sats': 'clever_rate'})
 
             # Prepare editable input columns for the table (only clever_kwh and udeladning_kwh)
-            clever_rate_col = []
             clever_kwh_col = []
             udeladning_kwh_col = []
-            for i, r in monthly_table.iterrows():
+            for i, r in merged.iterrows():
                 m = r['month']
-                # Use sats from CSV, fallback to 0 if not found
-                clever_rate_col.append(float(clever_sats_dict.get(m, 0.0)))
                 key_kwh = f'clever_kwh_{m}'
                 key_udelad = f'udeladning_kwh_{m}'
                 clever_kwh_col.append(float(st.session_state.get(key_kwh, r['kwh_charged'])))
                 udeladning_kwh_col.append(float(st.session_state.get(key_udelad, 0.0)))
 
-            # Add columns to the table
-            monthly_table['clever_rate'] = clever_rate_col
-            monthly_table['clever_kwh'] = clever_kwh_col
-            monthly_table['udeladning_kwh'] = udeladning_kwh_col
+            merged['clever_kwh'] = clever_kwh_col
+            merged['udeladning_kwh'] = udeladning_kwh_col
 
             # Use st.data_editor for a single input table (only clever_kwh and udeladning_kwh editable)
             edited = st.data_editor(
-                monthly_table,
+                merged,
                 column_config={
                     'clever_rate': st.column_config.NumberColumn('Clever sats (DKK/kWh)', min_value=0.0, step=0.01, format='%.2f', disabled=True),
                     'clever_kwh': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
@@ -233,7 +235,7 @@ if not st.session_state['df_data'].empty:
                 st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
 
             # Compute all derived columns for display and download
-            display_table = monthly_table.copy()
+            display_table = merged.copy()
             display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kwh_charged']
             display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
             display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
