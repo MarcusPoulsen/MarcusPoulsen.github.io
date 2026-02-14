@@ -162,14 +162,30 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'tariff_dkk_per_kwh', 'total_cost_dkk']].copy()
     df_result.columns = ['time', 'usage_kwh', 'spot_pris', 'tarif_pris', 'total_udgift']
     df_result = df_result.sort_values('time').reset_index(drop=True)
-    
+    # Detect car charging and allocate kWh based on thresholds provided
+    try:
+        df_result['car_charging'] = df_result['usage_kwh'] >= float(charge_threshold)
+        df_result['car_kwh'] = 0.0
+        mask = df_result['car_charging']
+        if mask.any():
+            df_result.loc[mask, 'car_kwh'] = df_result.loc[mask, 'usage_kwh'].clip(upper=float(car_max_kwh))
+        df_result['house_kwh'] = df_result['usage_kwh'] - df_result['car_kwh']
+    except Exception:
+        # Fallback: ensure columns exist
+        if 'car_kwh' not in df_result.columns:
+            df_result['car_kwh'] = 0.0
+        if 'car_charging' not in df_result.columns:
+            df_result['car_charging'] = False
+        if 'house_kwh' not in df_result.columns:
+            df_result['house_kwh'] = df_result['usage_kwh']
+
     print(f'\nFetched {len(df_result)} hours of data from {from_date} to {to_date}\n')
     print(df_result.to_string(index=False))
     print(f'\nTotal usage: {df_result["usage_kwh"].sum():.2f} kWh')
     print(f'Total spot cost: {(df_result["usage_kwh"] * df_result["spot_pris"]).sum():.2f} DKK')
     print(f'Total tariff cost: {(df_result["usage_kwh"] * df_result["tarif_pris"]).sum():.2f} DKK')
     print(f'Total cost: {df_result["total_udgift"].sum():.2f} DKK')
-    
+
     return df_result
 
 if __name__ == '__main__':
