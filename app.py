@@ -110,6 +110,11 @@ if st.button('📊 Fetch Data', type='primary'):
 # Render results if we have cached data
 if not st.session_state['df_data'].empty:
     df = st.session_state['df_data']
+    # Ensure afgift is included in per-kWh total price used across charts/tables
+    df['spot_pris'] = df.get('spot_pris', pd.Series(0.0))
+    df['tarif_pris'] = df.get('tarif_pris', pd.Series(0.0))
+    df['afgift_pris'] = df.get('afgift_pris', pd.Series(0.0))
+    df['total_pris_per_kwh'] = df['spot_pris'].fillna(0) + df['tarif_pris'].fillna(0) + df['afgift_pris'].fillna(0)
 
     # Summary metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -146,6 +151,10 @@ if not st.session_state['df_data'].empty:
             fig2 = go.Figure()
             fig2.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['spot_pris'], mode='lines', name='Spot Pris', line=dict(color='orange')))
             fig2.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['tarif_pris'], mode='lines', name='Tarif Pris', line=dict(color='blue')))
+            # Show afgift and combined total price per kWh
+            if 'afgift_pris' in df_tab.columns:
+                fig2.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['afgift_pris'], mode='lines', name='Afgift (tax)', line=dict(color='purple', dash='dot')))
+            fig2.add_trace(go.Scatter(x=df_tab['time'], y=df_tab['total_pris_per_kwh'], mode='lines', name='Total Pris (DKK/kWh)', line=dict(color='black', width=2)))
             fig2.update_layout(title='Hourly Electricity Prices', xaxis_title='Time', yaxis_title='Price (DKK/kWh)', height=400)
             st.plotly_chart(fig2, use_container_width=True)
 
@@ -154,9 +163,10 @@ if not st.session_state['df_data'].empty:
             'total_udgift': 'sum',
             'usage_kwh': 'sum',
             'spot_pris': 'mean',
-            'tarif_pris': 'mean'
+            'tarif_pris': 'mean',
+            'total_pris_per_kwh': 'mean'
         }).reset_index()
-        daily_cost.columns = ['date', 'total_cost', 'usage_kwh', 'avg_spot', 'avg_tarif']
+        daily_cost.columns = ['date', 'total_cost', 'usage_kwh', 'avg_spot', 'avg_tarif', 'avg_total_pris']
 
         fig3 = go.Figure()
         fig3.add_trace(go.Bar(x=daily_cost['date'], y=daily_cost['total_cost'], name='Daily Cost'))
@@ -201,9 +211,10 @@ if not st.session_state['df_data'].empty:
             'usage_kwh': 'mean',
             'spot_pris': 'mean',
             'tarif_pris': 'first',
+            'total_pris_per_kwh': 'mean',
             'total_udgift': 'mean'
         }).reset_index()
-        avg_by_hour.columns = ['Hour', 'Avg Usage (kWh)', 'Avg Spot Pris', 'Tarif Pris', 'Avg Total Cost (DKK)']
+        avg_by_hour.columns = ['Hour', 'Avg Usage (kWh)', 'Avg Spot Pris', 'Tarif Pris', 'Avg Total Pris (DKK/kWh)', 'Avg Total Cost (DKK)']
         st.dataframe(avg_by_hour, use_container_width=True)
 
         st.markdown('**Insights:**')
