@@ -51,32 +51,46 @@ car_max_kwh = st.number_input(
     help='Maksimalt antal kWh bilen kan tage per time (fx 11)'
 )
 
+# Persist fetched data across reruns so date filters don't force refetch
+if 'df_data' not in st.session_state:
+    st.session_state['df_data'] = pd.DataFrame()
+
+if 'last_token' not in st.session_state:
+    st.session_state['last_token'] = None
+
 if st.button('📊 Fetch Data', type='primary'):
-        if not token:
-            st.error('Please enter a token')
-        else:
-            df = fetch_power_data(token, charge_threshold, car_max_kwh, from_date, to_date)
-        
+    if not token:
+        st.error('Please enter a token')
+    else:
+        df = fetch_power_data(token, charge_threshold, car_max_kwh, from_date, to_date)
         if df is not None and not df.empty:
-            st.success('✅ Data fetched successfully!')
+            st.session_state['df_data'] = df
+            st.session_state['last_token'] = token
+            st.success('✅ Data fetched and cached for this session')
+        else:
+            st.warning('No data fetched')
+
+# Render results if we have cached data
+if not st.session_state['df_data'].empty:
+    df = st.session_state['df_data']
+
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric('Total Usage', f"{df['usage_kwh'].sum():.1f} kWh")
+    with col2:
+        st.metric('Total Cost', f"{df['total_udgift'].sum():.2f} DKK")
+    with col3:
+        st.metric('Avg Daily Cost', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
+    with col4:
+        st.metric('Avg Spot Price', f"{df['spot_pris'].mean():.3f} DKK/kWh")
+    
+    st.divider()
+
+    # Tabs for different views
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(['📈 Charts', '📋 Data Table', '📅 Daily Summary', '⏰ Hourly Stats', '🚗 Car Charge'])
             
-            # Summary metrics
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric('Total Usage', f"{df['usage_kwh'].sum():.1f} kWh")
-            with col2:
-                st.metric('Total Cost', f"{df['total_udgift'].sum():.2f} DKK")
-            with col3:
-                st.metric('Avg Daily Cost', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
-            with col4:
-                st.metric('Avg Spot Price', f"{df['spot_pris'].mean():.3f} DKK/kWh")
-            
-            st.divider()
-            
-            # Tabs for different views
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(['📈 Charts', '📋 Data Table', '📅 Daily Summary', '⏰ Hourly Stats', '🚗 Car Charge'])
-            
-            with tab1:
+    with tab1:
                 # Per-tab view filter
                 view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab1')
                 if isinstance(view_range, tuple) and len(view_range) == 2:
@@ -123,7 +137,7 @@ if st.button('📊 Fetch Data', type='primary'):
                                   yaxis_title='Cost (DKK)', height=400)
                 st.plotly_chart(fig3, use_container_width=True)
             
-            with tab2:
+    with tab2:
                 view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab2')
                 if isinstance(view_range, tuple) and len(view_range) == 2:
                     vf_from, vf_to = view_range
@@ -143,7 +157,7 @@ if st.button('📊 Fetch Data', type='primary'):
                     mime='text/csv'
                 )
             
-            with tab3:
+    with tab3:
                 view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
                 if isinstance(view_range, tuple) and len(view_range) == 2:
                     vf_from, vf_to = view_range
@@ -161,7 +175,7 @@ if st.button('📊 Fetch Data', type='primary'):
                 daily_summary.columns = ['Date', 'Usage (kWh)', 'Total Cost (DKK)', 'Avg Spot Pris', 'Tarif Pris']
                 st.dataframe(daily_summary, use_container_width=True)
             
-            with tab4:
+    with tab4:
                 view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab4')
                 if isinstance(view_range, tuple) and len(view_range) == 2:
                     vf_from, vf_to = view_range
@@ -186,7 +200,7 @@ if st.button('📊 Fetch Data', type='primary'):
                     peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
                     st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
 
-            with tab5:
+    with tab5:
                 view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab5')
                 if isinstance(view_range, tuple) and len(view_range) == 2:
                     vf_from, vf_to = view_range
