@@ -221,8 +221,15 @@ if not st.session_state['df_data'].empty:
         if 'car_kwh' not in df_car.columns:
             df_car['car_kwh'] = 0.0
 
-        # Compute car cost = car_kwh * (spot + tariff)
-        df_car['car_cost'] = df_car['car_kwh'] * (df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0))
+        # Compute car cost = car_kwh * (spot + tariff + afgift)
+        if 'afgift_pris' in df_car.columns:
+            afgift_series = df_car['afgift_pris'].fillna(0)
+        else:
+            afgift_series = 0.0
+
+        df_car['car_cost'] = df_car['car_kwh'] * (
+            df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0) + afgift_series
+        )
 
         daily_car = df_car.groupby(df_car['time'].dt.date).agg({
             'car_cost': 'sum',

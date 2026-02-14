@@ -152,10 +152,21 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         pass
     df_merged = df_merged.sort_values('time')
     df_merged['tariff_dkk_per_kwh'] = tariff_series.reindex(pd.DatetimeIndex(df_merged['time'])).fillna(0).values
-    # Add `afgift` (tax) per kWh: 0.9 DKK for years <=2025, 0.01 DKK for 2026+
+    # Load `afgift` (tax) per kWh from a CSV file if available, otherwise fall back to hardcoded defaults.
     afgift_series = pd.Series(0.0, index=tariff_series.index)
-    afgift_series.loc[[ts for ts in tariff_series.index if ts.year <= 2025]] = 0.9
-    afgift_series.loc[[ts for ts in tariff_series.index if ts.year >= 2026]] = 0.01
+    try:
+        afg = pd.read_csv('afgift_manual.csv')
+        for _, row in afg.iterrows():
+            ys = int(row['year_start'])
+            ye = int(row['year_end'])
+            val = float(row['afgift_dkk_per_kwh'])
+            mask = (afgift_series.index.year >= ys) & (afgift_series.index.year <= ye)
+            afgift_series.loc[mask] = val
+    except Exception as e:
+        # Fallback to previous behavior if CSV missing or malformed
+        afgift_series.loc[[ts for ts in tariff_series.index if ts.year <= 2025]] = 0.9
+        afgift_series.loc[[ts for ts in tariff_series.index if ts.year >= 2026]] = 0.01
+
     df_merged['afgift_dkk_per_kwh'] = afgift_series.reindex(pd.DatetimeIndex(df_merged['time'])).fillna(0).values
 
     # Calculate costs
