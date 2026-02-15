@@ -156,10 +156,12 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     # Remove all ambiguous times (DST transitions) for any year
     print('now filtering out DST transition hours from power data...')
     if df_power['time'].dt.tz is None:
+        print('debug: power data is naive, localizing to Europe/Copenhagen with ambiguous=NaT to drop DST transition hours')
         df_power['time'] = pd.to_datetime(df_power['time'], errors='coerce')
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
         df_power = df_power.dropna(subset=['time'])
     else:
+        print('debug: power data is timezone-aware, converting to Europe/Copenhagen and filtering out DST transition hours')
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
     df_power['time'] = df_power['time'].dt.floor('h')
     df_power['time_local'] = df_power['time'].dt.tz_localize(None)
