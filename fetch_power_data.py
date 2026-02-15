@@ -168,7 +168,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     if not df_prices.empty:
         # Add moms (25%) to spot price
         if 'DKK_per_kWh' in df_prices.columns:
-            df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1
+            df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1.25
         # time_start and time_end are already datetimes in Europe/Copenhagen from fetch_el_price_range
         # Add a UTC column for merging
         df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
