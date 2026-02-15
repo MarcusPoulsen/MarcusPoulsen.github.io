@@ -74,12 +74,10 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             width='stretch',
             key='monthly_car_editor'
         )
-        if st.button('Beregn', type='primary'):
-            for i, r in edited.iterrows():
-                m = r['month']
-                st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
-                st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
-            st.experimental_rerun()
+        for i, r in edited.iterrows():
+            m = r['month']
+            st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
+            st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
         csv = edited[[
             'month', 'kWh opladet (automatisk detekteret)', 'clever_kwh', 'korrektion_kwh_clever',
             'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
