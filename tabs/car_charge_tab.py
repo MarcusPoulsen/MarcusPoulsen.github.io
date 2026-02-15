@@ -25,11 +25,39 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
         st.metric('Gennemsnitlig kWh-pris for bil', f"{avg_price:.2f} DKK/kWh")
     st.divider()
-    fig_car = go.Figure()
-    fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
-    fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='red', width=3)))
-    fig_car.update_layout(title='Dagligt forbrug KwH og pris', xaxis_title='Date', yaxis=dict(title='Cost (DKK)'), yaxis2=dict(title='kWh', overlaying='y', side='right'), height=450)
-    st.plotly_chart(fig_car, width='stretch')
+    # --- Monthly aggregation for new bar chart ---
+    monthly_agg = None
+    if not monthly_car.empty:
+        # Calculate total cost and total clever reimbursement per month
+        monthly_agg = monthly_car.copy()
+        # Use clever_kwh and clever_rate from merged (already aligned by month)
+        clever_map = merged.set_index('month')[['clever_kwh', 'clever_rate']]
+        monthly_agg = monthly_agg.set_index('month')
+        monthly_agg['clever_kwh'] = clever_map['clever_kwh']
+        monthly_agg['clever_rate'] = clever_map['clever_rate']
+        monthly_agg['reimbursed'] = monthly_agg['clever_kwh'] * monthly_agg['clever_rate']
+        monthly_agg = monthly_agg.reset_index()
+        fig_car = go.Figure()
+        fig_car.add_trace(go.Bar(
+            x=monthly_agg['month'],
+            y=monthly_agg['car_cost'],
+            name='Opladningspris (DKK)',
+            marker_color='green',
+        ))
+        fig_car.add_trace(go.Bar(
+            x=monthly_agg['month'],
+            y=monthly_agg['reimbursed'],
+            name='Clever refusion (DKK)',
+            marker_color='blue',
+        ))
+        fig_car.update_layout(
+            barmode='group',
+            title='Månedlig opladningspris og Clever refusion',
+            xaxis_title='Måned',
+            yaxis_title='DKK',
+            height=450
+        )
+        st.plotly_chart(fig_car, width='stretch')
     monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
     if not monthly_car.empty:
         monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
