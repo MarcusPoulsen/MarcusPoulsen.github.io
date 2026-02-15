@@ -175,6 +175,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         # Add moms (25%) to spot price
         if 'DKK_per_kWh' in df_prices.columns:
             df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1.25
+        # Shift price interval forward by 1 hour so price for 02:00–03:00 is matched with usage at 03:00
+        df_prices['time_start'] = df_prices['time_start'] - pd.Timedelta(hours=2)
         # Coerce errors to NaT to avoid ValueError on bad data
         print("\n--- DEBUG: df_prices (price) before NaT ---")
         with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
