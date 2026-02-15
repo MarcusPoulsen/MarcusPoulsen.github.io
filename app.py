@@ -55,6 +55,10 @@ def _filter_df_by_view_range(df, view_range):
 st.set_page_config(page_title='Power Usage Monitor', layout='wide')
 st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 
+
+
+st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark). Beregneren kan bruges til at sammenligne den beregnede udgift til strøm til bilen, sat op i mod den tilbagebetaling clever giver for opladning hjemme, og dermed give en indikation på om det er økonomisk fordelagtigt at lade hjemme eller ej.')
+
 # Date range selector for period filtering
 today = datetime.now().date()
 default_from = today - timedelta(days=30)
@@ -65,32 +69,30 @@ else:
     from_date = date_range
     to_date = date_range
 
-st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark)')
-
-st.divider()
-
-# Token input (with security tip)
-token = st.text_input(
-    'Indtast din Eloverblik refresh token:, klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her',
-    type='password',
-    help='Din token gemmes ikke og bruges kun til denne session'
-)
-
-# Inputs for electric car detection
-charge_threshold = st.number_input(
-    'Elbil oplader flag',
-    min_value=0.0,
-    value=5.0,
-    step=0.1,
-    help='Indsæt Kwh hvor du er sikker på at din elbil lader den time, fx 5 kwh hvis du ved at resten af huset max kan bruge 4,5 kwh'
-)
-car_max_kwh = st.number_input(
-    'Max opladningshastighed (kWh)',
-    min_value=0.0,
-    value=11.0,
-    step=0.1,
-    help='Maksimalt antal kWh bilen kan tage per time (fx 11)'
-)
+# Inputs in three columns (token, charge_threshold, car_max_kwh)
+col_token, col_charge, col_max = st.columns(3)
+with col_token:
+    token = st.text_input(
+        'Indtast din Eloverblik refresh token:, klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her',
+        type='password',
+        help='Din token gemmes ikke og bruges kun til denne session'
+    )
+with col_charge:
+    charge_threshold = st.number_input(
+        'Elbil oplader flag',
+        min_value=0.0,
+        value=5.0,
+        step=0.1,
+        help='Indsæt Kwh hvor du er sikker på at din elbil lader den time, fx 5 kwh hvis du ved at resten af huset max kan bruge 4,5 kwh'
+    )
+with col_max:
+    car_max_kwh = st.number_input(
+        'Max opladningshastighed (kWh)',
+        min_value=0.0,
+        value=11.0,
+        step=0.1,
+        help='Maksimalt antal kWh bilen kan tage per time (fx 11)'
+    )
 
 # Persist fetched data across reruns so date filters don't force refetch
 if 'df_data' not in st.session_state:
