@@ -35,7 +35,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
         monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
         monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
-        monthly_table.columns = ['month', 'kwh_charged', 'average_price', 'total_price']
+        monthly_table.columns = ['month', 'kWh opladet (automatisk detekteret)', 'average_price', 'total_price']
         st.markdown('### Månedligt opladningsoversigt')
         clever_sats_df = pd.read_csv('clever_tilbagebetaling.csv')
         clever_sats_df['month'] = clever_sats_df['month'].astype(str)
@@ -69,7 +69,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
             st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
         display_table = merged.copy()
-        display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kwh_charged']
+        display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
         display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
         display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
         display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
@@ -78,13 +78,13 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
         st.dataframe(display_table[[
-            'month', 'kwh_charged', 'clever_kwh', 'korrektion_kwh_clever',
+            'month', 'kWh opladet (automatisk detekteret)', 'clever_kwh', 'korrektion_kwh_clever',
             'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
             'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
             'udeladning_kwh', 'udeladning_cost'
         ]], width='stretch')
         csv = display_table[[
-            'month', 'kwh_charged', 'clever_kwh', 'korrektion_kwh_clever',
+            'month', 'kWh opladet (automatisk detekteret)', 'clever_kwh', 'korrektion_kwh_clever',
             'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
             'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
             'udeladning_kwh', 'udeladning_cost'
