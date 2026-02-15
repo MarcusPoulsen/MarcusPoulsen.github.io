@@ -126,7 +126,7 @@ if not st.session_state['df_data'].empty:
     df['total_pris_per_kwh'] = df['spot_pris'].fillna(0) + df['tarif_pris'].fillna(0) + df['afgift_pris'].fillna(0)
 
     # Summary metrics
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.metric('Total forbrug for hele perioden', f"{df['usage_kwh'].sum():.1f} kWh")
     with col2:
@@ -134,7 +134,9 @@ if not st.session_state['df_data'].empty:
     with col3:
         st.metric('Gennemsnitlig daglig udgift', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
     with col4:
-        st.metric('Gennemsnitlig spotpris', f"{df['spot_pris'].mean():.3f} DKK/kWh")
+        st.metric('Gennemsnitlig spotpris for hele perioden', f"{df['spot_pris'].mean():.3f} DKK/kWh")
+    with col5:
+        st.metric('Gennemsnitlig totalpris for hele perioden', f"{df['total_pris_per_kwh'].mean():.3f} DKK/kWh")
     
     st.divider()
 
