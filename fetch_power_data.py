@@ -33,7 +33,17 @@ def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, e
     CSV columns: month_start,month_end,hour_start,hour_end,price
     month ranges may wrap (e.g. 10 to 3).
     """
-    idx = pd.date_range(start=start_ts.floor('H'), end=end_ts.floor('H'), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
+    # Ensure start_ts and end_ts are in Europe/Copenhagen, then strip tzinfo before passing to pd.date_range with explicit tz
+    if start_ts.tzinfo is None:
+        start_ts = start_ts.tz_localize('Europe/Copenhagen')
+    else:
+        start_ts = start_ts.tz_convert('Europe/Copenhagen')
+    if end_ts.tzinfo is None:
+        end_ts = end_ts.tz_localize('Europe/Copenhagen')
+    else:
+        end_ts = end_ts.tz_convert('Europe/Copenhagen')
+    # Remove tzinfo before passing to pd.date_range with tz argument
+    idx = pd.date_range(start=start_ts.floor('H').replace(tzinfo=None), end=end_ts.floor('H').replace(tzinfo=None), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
     s = pd.Series(0.0, index=idx)
     try:
         tariffs = pd.read_csv('tariffs_manual.csv')
@@ -126,13 +136,28 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('No power data found')
         return None
     
+    # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen
     df_power['time'] = pd.to_datetime(df_power['time'])
-    
+    if df_power['time'].dt.tz is None:
+        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen')
+    else:
+        df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
+    df_power['time'] = df_power['time'].dt.floor('H')
+
     # Fetch prices
     print('Fetching electricity prices...')
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
-    
-    if df_prices.empty:
+    if not df_prices.empty:
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
+        if df_prices['time_start'].dt.tz is None:
+            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen')
+        else:
+            df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
+        df_prices['time_start'] = df_prices['time_start'].dt.floor('H')
+        print('--- DEBUG: Spot price data ---')
+        print('Spot price data range:', df_prices['time_start'].min(), 'to', df_prices['time_start'].max())
+        print(df_prices.tail(20))
+    else:
         print('Warning: Could not fetch price data')
         return df_power
     
