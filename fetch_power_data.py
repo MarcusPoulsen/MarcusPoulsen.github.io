@@ -142,8 +142,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
-    df_power['time'] = df_power['time'].dt.floor('H', ambiguous='first')
-    df_power['time_utc'] = df_power['time'].dt.tz_convert('UTC')
+    # Convert to UTC, floor, then back to Europe/Copenhagen to avoid ambiguous times
+    df_power['time_utc'] = df_power['time'].dt.tz_convert('UTC').dt.floor('H')
+    df_power['time'] = df_power['time_utc'].dt.tz_convert('Europe/Copenhagen')
 
     # Fetch prices
     print('Fetching electricity prices...')
@@ -157,8 +158,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
-        df_prices['time_start'] = df_prices['time_start'].dt.floor('H', ambiguous='first')
-        df_prices['time_start_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
+        # Convert to UTC, floor, then back to Europe/Copenhagen to avoid ambiguous times
+        df_prices['time_start_utc'] = df_prices['time_start'].dt.tz_convert('UTC').dt.floor('H')
+        df_prices['time_start'] = df_prices['time_start_utc'].dt.tz_convert('Europe/Copenhagen')
     else:
         print('Warning: Could not fetch price data')
         return df_power
