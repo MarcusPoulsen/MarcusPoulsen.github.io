@@ -65,17 +65,13 @@ else:
     from_date = date_range
     to_date = date_range
 
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer.')
-with col2:
-    st.markdown('**Zone:** DK2 (Øst Danmark)')
+st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark)')
 
 st.divider()
 
 # Token input (with security tip)
 token = st.text_input(
-    'Indtast din Eloverblik refresh token:',
+    'Indtast din Eloverblik refresh token:, klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her',
     type='password',
     help='Din token gemmes ikke og bruges kun til denne session'
 )
