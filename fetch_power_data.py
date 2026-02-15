@@ -145,16 +145,19 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     df_power['time'] = pd.to_datetime(df_power['time'])
     # Remove all data for the DST transition hour (last Sunday of October, 02:00-02:59) for any year
     def is_last_sunday_of_oct(dt):
-        return (
-            dt.month == 10 and
-            dt.weekday() == 6 and
-            dt.day >= 25 and
-            dt == (dt + pd.offsets.Week(weekday=6))
-        )
+        # Accepts both pd.Timestamp and datetime
+        if hasattr(dt, 'month') and hasattr(dt, 'weekday'):
+            if dt.month == 10 and dt.weekday() == 6 and dt.day >= 25:
+                # Find last Sunday of October for this year
+                last_oct = datetime(dt.year, 10, 31)
+                last_sunday = last_oct - timedelta(days=(last_oct.weekday() - 6) % 7)
+                return dt.day == last_sunday.day
+        return False
     mask_dst = df_power['time'].apply(lambda x: is_last_sunday_of_oct(x) and x.hour == 2)
     df_power = df_power[~mask_dst]
     if df_power['time'].dt.tz is None:
-        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='raise')
+        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
+        df_power = df_power.dropna(subset=['time'])
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
     df_power['time'] = df_power['time'].dt.floor('h')
@@ -174,7 +177,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         mask_dst = df_prices['time_start'].apply(lambda x: is_last_sunday_of_oct(x) and x.hour == 2)
         df_prices = df_prices[~mask_dst]
         if df_prices['time_start'].dt.tz is None:
-            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='raise')
+            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
+            df_prices = df_prices.dropna(subset=['time_start'])
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
