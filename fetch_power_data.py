@@ -160,6 +160,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         # Convert to UTC, floor, then back to Europe/Copenhagen to avoid ambiguous times
         df_prices['time_start_utc'] = df_prices['time_start'].dt.tz_convert('UTC').dt.floor('H')
+        # Drop duplicates on UTC timestamp, keep last (winter time hour)
+        df_prices = df_prices.drop_duplicates(subset=['time_start_utc'], keep='last').reset_index(drop=True)
         df_prices['time_start'] = df_prices['time_start_utc'].dt.tz_convert('Europe/Copenhagen')
     else:
         print('Warning: Could not fetch price data')
