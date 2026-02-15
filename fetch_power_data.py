@@ -143,10 +143,11 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
-    # Localize with ambiguous='NaT' to drop all ambiguous times (DST transitions)
+    # Remove all data on October 26 between hour 01 and 03 (inclusive of 01, exclusive of 03) for any year
+    mask_oct26 = (df_power['time'].dt.month == 10) & (df_power['time'].dt.day == 26) & (df_power['time'].dt.hour >= 1) & (df_power['time'].dt.hour < 3)
+    df_power = df_power[~mask_oct26]
     if df_power['time'].dt.tz is None:
-        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
-        df_power = df_power.dropna(subset=['time'])
+        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='raise')
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
     df_power['time'] = df_power['time'].dt.floor('h')
@@ -162,10 +163,11 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             print(df_prices.head(100))
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
-        # Localize with ambiguous='NaT' to drop all ambiguous times (DST transitions)
+        # Remove all data on October 26 between hour 01 and 03 (inclusive of 01, exclusive of 03) for any year
+        mask_oct26 = (df_prices['time_start'].dt.month == 10) & (df_prices['time_start'].dt.day == 26) & (df_prices['time_start'].dt.hour >= 1) & (df_prices['time_start'].dt.hour < 3)
+        df_prices = df_prices[~mask_oct26]
         if df_prices['time_start'].dt.tz is None:
-            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
-            df_prices = df_prices.dropna(subset=['time_start'])
+            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='raise')
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
