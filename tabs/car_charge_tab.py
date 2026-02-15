@@ -62,6 +62,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
+        def _rerun():
+            st.experimental_rerun()
         edited = st.data_editor(
             display_table,
             column_config={
@@ -72,7 +74,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             disabled=['month', 'kWh opladet (automatisk detekteret)', 'average_price', 'total_price', 'korrektion_kwh_clever', 'korrektion_cost', 'adjusted_total', 'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt', 'udeladning_cost'],
             hide_index=True,
             width='stretch',
-            key='monthly_car_editor'
+            key='monthly_car_editor',
+            on_change=_rerun
         )
         for i, r in edited.iterrows():
             m = r['month']
