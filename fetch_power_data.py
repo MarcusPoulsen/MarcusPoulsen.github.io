@@ -210,6 +210,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     # Merge power data with prices using UTC time to guarantee a match for every hour
     print("\n--- DEBUG: Merging on 'time_utc' ---")
     df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left', suffixes=('', '_price'))
+    print('the merged data looks like this:')
+    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+        print(df_merged.head(100))
     # After merge, drop time_utc columns and keep time in Europe/Copenhagen
     df_merged = df_merged.drop(columns=['time_utc'])
     if 'time_utc_price' in df_merged.columns:
