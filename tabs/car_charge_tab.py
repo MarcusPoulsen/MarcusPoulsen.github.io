@@ -57,8 +57,12 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             udeladning_kwh_col.append(float(st.session_state.get(key_udelad, 0.0)))
         merged['clever_kwh'] = clever_kwh_col
         merged['udeladning_kwh'] = udeladning_kwh_col
-        # --- Bar chart logic moved here, after merged is defined ---
-        # Use adjusted_total for the bar chart (matches table and CSV)
+        # Calculate corrections and adjusted total on merged before using in bar chart
+        merged['korrektion_kwh_clever'] = merged['clever_kwh'] - merged['kWh opladet (automatisk detekteret)']
+        merged['korrektion_cost'] = merged['korrektion_kwh_clever'] * merged['average_price']
+        merged['adjusted_total'] = merged['total_price'] + merged['korrektion_cost']
+        merged['reimbursed'] = merged['clever_kwh'] * merged['clever_rate']
+        # --- Bar chart logic ---
         monthly_agg = merged.copy()
         fig_car = go.Figure()
         fig_car.add_trace(go.Bar(
