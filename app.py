@@ -59,15 +59,10 @@ st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 
 st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark). Beregneren kan bruges til at sammenligne den beregnede udgift til strøm til bilen, sat op i mod den tilbagebetaling clever giver for opladning hjemme, og dermed give en indikation på om det er økonomisk fordelagtigt at lade hjemme eller ej.')
 
-# Date range selector for period filtering
+
+# Date range defaults
 today = datetime.now().date()
 default_from = today - timedelta(days=30)
-date_range = st.date_input('Periode', value=(default_from, today), help='Vælg start- og slutdato for perioden')
-if isinstance(date_range, tuple) and len(date_range) == 2:
-    from_date, to_date = date_range
-else:
-    from_date = date_range
-    to_date = date_range
 
 # Token input above columns
 token = st.text_input(
@@ -79,7 +74,7 @@ token = st.text_input(
 # Three columns: date, charge_threshold, car_max_kwh
 col_date, col_charge, col_max = st.columns(3)
 with col_date:
-    date_range = st.date_input('Periode', value=(default_from, today), help='Vælg start- og slutdato for perioden')
+    date_range = st.date_input('Periode', value=(default_from, today), help='Vælg start- og slutdato for perioden', key='periode_date_input')
     if isinstance(date_range, tuple) and len(date_range) == 2:
         from_date, to_date = date_range
     else:
