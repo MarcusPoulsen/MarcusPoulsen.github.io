@@ -23,7 +23,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     fig_car = go.Figure()
     fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
     fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='red', width=3)))
-    fig_car.update_layout(title='Daily Charge Cost and kWh', xaxis_title='Date', yaxis=dict(title='Cost (DKK)'), yaxis2=dict(title='kWh', overlaying='y', side='right'), height=450)
+    fig_car.update_layout(title='Dagligt forbrug KwH og pris', xaxis_title='Date', yaxis=dict(title='Cost (DKK)'), yaxis2=dict(title='kWh', overlaying='y', side='right'), height=450)
     st.plotly_chart(fig_car, use_container_width=True)
     monthly_car = df_car.set_index('time').resample('M').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
     if not monthly_car.empty:
