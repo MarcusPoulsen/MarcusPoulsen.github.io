@@ -157,6 +157,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
     if not df_prices.empty:
         # Coerce errors to NaT to avoid ValueError on bad data
+        print("\n--- DEBUG: df_prices (price) before NaT ---")
+        with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+            print(df_prices.head(100))
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
         # Remove ambiguous times for 2025-10-26 02:00:00 and 03:00:00 before any tz/floor operation
         ambiguous_mask = (df_prices['time_start'].dt.date == datetime(2025, 10, 26).date()) & (df_prices['time_start'].dt.hour.isin([2, 3]))
@@ -171,7 +174,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('Warning: Could not fetch price data')
         return df_power
     print("\n--- DEBUG: df_prices (price) ---")
-    print(df_prices.head(100))
+    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+            print(df_prices.head(100))
     
     # Fetch tariff prices (build hourly series)
     print('Fetching tariff prices...')
