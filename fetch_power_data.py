@@ -213,6 +213,13 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     print('the merged data looks like this:')
     with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
         print(df_merged.head(100))
+    print('the merged tables looked like this:')
+    print('df_power:')
+    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+        print(df_power.head(5))
+    print('df_prices:')
+    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+        print(df_prices.head(5))
     # After merge, drop time_utc columns and keep time in Europe/Copenhagen
     df_merged = df_merged.drop(columns=['time_utc'])
     if 'time_utc_price' in df_merged.columns:
