@@ -93,7 +93,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             yaxis_title='DKK',
             height=450
         )
-        st.plotly_chart(fig_car, width='stretch')
+        st.plotly_chart(fig_car, width='stretch', key='car_charge_bar_chart')
         # --- End bar chart logic ---
         # Move input fields to the bottom table (data_editor)
         display_table = merged.copy()
