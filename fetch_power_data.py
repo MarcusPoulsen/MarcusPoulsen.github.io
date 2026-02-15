@@ -154,6 +154,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
                 return dt.day == last_sunday.day
         return False
     # Remove all ambiguous times (DST transitions) for any year
+    print('now filtering out DST transition hours from power data...')
     if df_power['time'].dt.tz is None:
         df_power['time'] = pd.to_datetime(df_power['time'], errors='coerce')
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
