@@ -136,14 +136,14 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('No power data found')
         return None
     
-    # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen
+    # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then convert to UTC for merge
     df_power['time'] = pd.to_datetime(df_power['time'])
     if df_power['time'].dt.tz is None:
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
-    # Use ambiguous='NaT' to avoid AmbiguousTimeError during DST transitions
     df_power['time'] = df_power['time'].dt.floor('H', ambiguous='NaT')
+    df_power['time_utc'] = df_power['time'].dt.tz_convert('UTC')
 
     # Fetch prices
     print('Fetching electricity prices...')
@@ -158,6 +158,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         df_prices['time_start'] = df_prices['time_start'].dt.floor('H', ambiguous='NaT')
+        df_prices['time_start_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
     else:
         print('Warning: Could not fetch price data')
         return df_power
@@ -176,8 +177,10 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('Error converting df_prices["time_start"] to datetime:', e)
         print('Problematic values:', df_prices['time_start'].head(10).to_list())
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
-    # Merge power data with prices
-    df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left')
+    # Merge power data with prices using UTC columns to ensure DST/offset alignment
+    df_merged = pd.merge(df_power, df_prices, left_on='time_utc', right_on='time_start_utc', how='left')
+    # After merge, drop UTC columns and keep time in Europe/Copenhagen
+    df_merged = df_merged.drop(columns=['time_utc', 'time_start_utc'])
 
     # Add tariff column by aligning hourly tariff series
     try:
