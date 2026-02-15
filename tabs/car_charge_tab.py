@@ -76,12 +76,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             y=monthly_agg['adjusted_total'],
             name='Opladningspris (DKK, justeret)',
             marker_color='green',
-            st.markdown(f"""
-    <div style='padding: 1em; border-radius: 0.5em; background: #f0f2f6; border: 1px solid #d3d3d3; text-align: center;'>
-        <b>{net_label}</b><br>
-        <span style='font-size: 1.5em; color: #2e7d32;'>{net_value}</span>
-    </div>
-            """, unsafe_allow_html=True)
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
