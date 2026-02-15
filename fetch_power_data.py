@@ -148,6 +148,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     # Fetch prices
     print('Fetching electricity prices...')
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
+    print(df_prices.head(20))
+    print(df_prices.tail(20))
     if not df_prices.empty:
         # Coerce errors to NaT to avoid ValueError on bad data
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
