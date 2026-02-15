@@ -14,11 +14,16 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     df_car['car_cost'] = df_car['car_kwh'] * (df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0) + afgift_series)
     daily_car = df_car.groupby(df_car['time'].dt.date).agg({'car_cost': 'sum', 'car_kwh': 'sum'}).reset_index()
     daily_car.columns = ['date', 'total_charge_cost', 'total_charge_kwh']
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     with c1:
         st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
     with c2:
         st.metric('Total kwH opladet i periode', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
+    with c3:
+        total_kwh = daily_car['total_charge_kwh'].sum()
+        total_cost = daily_car['total_charge_cost'].sum()
+        avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
+        st.metric('Gennemsnitlig kWh-pris for bil', f"{avg_price:.2f} DKK/kWh")
     st.divider()
     fig_car = go.Figure()
     fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
