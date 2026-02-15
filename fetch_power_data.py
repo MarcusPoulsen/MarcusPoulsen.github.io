@@ -172,6 +172,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     print('Fetching electricity prices...')
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
     if not df_prices.empty:
+        # Add moms (25%) to spot price
+        if 'DKK_per_kWh' in df_prices.columns:
+            df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1.25
         # Coerce errors to NaT to avoid ValueError on bad data
         print("\n--- DEBUG: df_prices (price) before NaT ---")
         with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
