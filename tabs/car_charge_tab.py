@@ -71,6 +71,40 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         merged['korrektion_cost'] = merged['korrektion_kwh_clever'] * merged['average_price']
         merged['adjusted_total'] = merged['total_price'] + merged['korrektion_cost']
         merged['reimbursed'] = merged['clever_kwh'] * merged['clever_rate']
+        # --- Bar chart logic ---
+        monthly_agg = merged.copy()
+        fig_car = go.Figure()
+        fig_car.add_trace(go.Bar(
+            x=monthly_agg['month'],
+            y=monthly_agg['adjusted_total'],
+            name='Opladningspris (DKK, justeret)',
+            marker_color='green',
+        ))
+        fig_car.add_trace(go.Bar(
+            x=monthly_agg['month'],
+            y=monthly_agg['reimbursed'],
+            name='Clever refusion (DKK)',
+            marker_color='blue',
+        ))
+        fig_car.update_layout(
+            barmode='group',
+            title='Månedlig opladningspris og Clever refusion',
+            xaxis_title='Måned',
+            yaxis_title='DKK',
+            height=450
+        )
+        st.plotly_chart(fig_car, width='stretch')
+        # --- End bar chart logic ---
+        # Move input fields to the bottom table (data_editor)
+        display_table = merged.copy()
+        display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
+        display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
+        display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
+        display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
+        display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
+        display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
+        display_table['clever_abbonnemnt'] = 799.0
+        display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
         # Calculate net_price_total from display_table (where net_price is always present)
         if 'net_price' in display_table.columns:
             net_price_total = display_table['net_price'].sum()
@@ -79,6 +113,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             else:
                 net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
             net_value = f"{net_price_total:.2f} DKK"
+        # Now show the net_price metric in the 4th column
+        with c4:
+            st.metric(net_label, net_value)
         # Move input fields to the bottom table (data_editor)
         display_table = merged.copy()
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
