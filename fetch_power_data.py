@@ -101,7 +101,6 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         from_date = (to_date - timedelta(days=30)) if from_date is None else from_date
 
     all_power_data = []
-    
     for point in points:
         # Request HOUR aggregation instead of Day
         r = requests.post(f'https://api.eloverblik.dk/customerapi/api/meterdata/gettimeseries/{from_date}/{to_date}/Hour',
@@ -135,6 +134,11 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     if df_power.empty:
         print('No power data found')
         return None
+
+    # --- DEBUG: Show all rows of usage and price data before join ---
+    # (df_prices is not available yet, so only print df_power here)
+    print("\n--- DEBUG: df_power (usage) ---")
+    print(df_power)
     
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
@@ -151,8 +155,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     # Fetch prices
     print('Fetching electricity prices...')
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
-    print(df_prices.head(50))
-    print(df_prices.tail(50))
+    print("\n--- DEBUG: df_prices (price) ---")
+    print(df_prices)
     if not df_prices.empty:
         # Coerce errors to NaT to avoid ValueError on bad data
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
@@ -184,6 +188,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('Problematic values:', df_prices['time_start'].head(10).to_list())
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
     # Merge power data with prices using naive local time to guarantee a match for every hour
+    print("\n--- DEBUG: Merging on 'time_local' ---")
     df_merged = pd.merge(df_power, df_prices, left_on='time_local', right_on='time_local', how='left', suffixes=('', '_price'))
     # After merge, drop time_local columns and keep time in Europe/Copenhagen
     df_merged = df_merged.drop(columns=['time_local'])
