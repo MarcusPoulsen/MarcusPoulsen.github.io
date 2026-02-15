@@ -79,6 +79,16 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             else:
                 net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
             net_value = f"{net_price_total:.2f} DKK"
+        # Move input fields to the bottom table (data_editor)
+        display_table = merged.copy()
+        display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
+        display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
+        display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
+        display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
+        display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
+        display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
+        display_table['clever_abbonnemnt'] = 799.0
+        display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
         # --- Bar chart logic ---
         monthly_agg = merged.copy()
         fig_car = go.Figure()
@@ -106,16 +116,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         with c4:
             st.metric(net_label, net_value)
         # --- End bar chart logic ---
-        # Move input fields to the bottom table (data_editor)
-        display_table = merged.copy()
-        display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
-        display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
-        display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
-        display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
-        display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
-        display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
-        display_table['clever_abbonnemnt'] = 799.0
-        display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
         edited = st.data_editor(
             display_table,
             column_config={
