@@ -136,15 +136,14 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('No power data found')
         return None
     
-    # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then convert to UTC for merge
+    # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
     if df_power['time'].dt.tz is None:
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
-    # Convert to UTC, floor, then back to Europe/Copenhagen to avoid ambiguous times
-    df_power['time_utc'] = df_power['time'].dt.tz_convert('UTC').dt.floor('H')
-    df_power['time'] = df_power['time_utc'].dt.tz_convert('Europe/Copenhagen')
+    df_power['time'] = df_power['time'].dt.floor('H')
+    df_power['time_local'] = df_power['time'].dt.tz_localize(None)
 
     # Fetch prices
     print('Fetching electricity prices...')
@@ -158,11 +157,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
-        # Convert to UTC, floor, then back to Europe/Copenhagen to avoid ambiguous times
-        df_prices['time_start_utc'] = df_prices['time_start'].dt.tz_convert('UTC').dt.floor('H')
-        # Drop duplicates on UTC timestamp, keep last (winter time hour)
-        df_prices = df_prices.drop_duplicates(subset=['time_start_utc'], keep='last').reset_index(drop=True)
-        df_prices['time_start'] = df_prices['time_start_utc'].dt.tz_convert('Europe/Copenhagen')
+        df_prices['time_start'] = df_prices['time_start'].dt.floor('H')
+        df_prices['time_local'] = df_prices['time_start'].dt.tz_localize(None)
     else:
         print('Warning: Could not fetch price data')
         return df_power
@@ -181,10 +177,12 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('Error converting df_prices["time_start"] to datetime:', e)
         print('Problematic values:', df_prices['time_start'].head(10).to_list())
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
-    # Merge power data with prices using UTC columns to ensure DST/offset alignment
-    df_merged = pd.merge(df_power, df_prices, left_on='time_utc', right_on='time_start_utc', how='left')
-    # After merge, drop UTC columns and keep time in Europe/Copenhagen
-    df_merged = df_merged.drop(columns=['time_utc', 'time_start_utc'])
+    # Merge power data with prices using naive local time to guarantee a match for every hour
+    df_merged = pd.merge(df_power, df_prices, left_on='time_local', right_on='time_local', how='left', suffixes=('', '_price'))
+    # After merge, drop time_local columns and keep time in Europe/Copenhagen
+    df_merged = df_merged.drop(columns=['time_local'])
+    if 'time_local_price' in df_merged.columns:
+        df_merged = df_merged.drop(columns=['time_local_price'])
 
     # Add tariff column by aligning hourly tariff series
     try:
