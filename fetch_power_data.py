@@ -139,10 +139,11 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen
     df_power['time'] = pd.to_datetime(df_power['time'])
     if df_power['time'].dt.tz is None:
-        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen')
+        df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
-    df_power['time'] = df_power['time'].dt.floor('H')
+    # Use ambiguous='NaT' to avoid AmbiguousTimeError during DST transitions
+    df_power['time'] = df_power['time'].dt.floor('H', ambiguous='NaT')
 
     # Fetch prices
     print('Fetching electricity prices...')
@@ -150,10 +151,10 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     if not df_prices.empty:
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
         if df_prices['time_start'].dt.tz is None:
-            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen')
+            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
-        df_prices['time_start'] = df_prices['time_start'].dt.floor('H')
+        df_prices['time_start'] = df_prices['time_start'].dt.floor('H', ambiguous='NaT')
         print('--- DEBUG: Spot price data ---')
         print('Spot price data range:', df_prices['time_start'].min(), 'to', df_prices['time_start'].max())
         print(df_prices.tail(20))
