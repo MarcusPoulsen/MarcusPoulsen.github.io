@@ -20,9 +20,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     net_value = 'N/A'
     # Try to get from merged table if it exists (after monthly_table is created)
 
-
-    # We'll fill net_price_total after merged is created (monthly table)
-    c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
     with c2:
@@ -79,7 +76,12 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             y=monthly_agg['adjusted_total'],
             name='Opladningspris (DKK, justeret)',
             marker_color='green',
-        ))
+            st.markdown(f"""
+    <div style='padding: 1em; border-radius: 0.5em; background: #f0f2f6; border: 1px solid #d3d3d3; text-align: center;'>
+        <b>{net_label}</b><br>
+        <span style='font-size: 1.5em; color: #2e7d32;'>{net_value}</span>
+    </div>
+            """, unsafe_allow_html=True)
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
