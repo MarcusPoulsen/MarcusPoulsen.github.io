@@ -71,9 +71,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         merged['korrektion_cost'] = merged['korrektion_kwh_clever'] * merged['average_price']
         merged['adjusted_total'] = merged['total_price'] + merged['korrektion_cost']
         merged['reimbursed'] = merged['clever_kwh'] * merged['clever_rate']
-        # Calculate net_price_total from merged table
-        if 'net_price' in merged.columns:
-            net_price_total = merged['net_price'].sum()
+        # Calculate net_price_total from display_table (where net_price is always present)
+        if 'net_price' in display_table.columns:
+            net_price_total = display_table['net_price'].sum()
             if net_price_total < 0:
                 net_label = 'Clever tilbagebetalt dig mere end du har betalt'
             else:
