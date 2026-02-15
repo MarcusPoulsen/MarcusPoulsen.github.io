@@ -175,14 +175,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         # Add moms (25%) to spot price
         if 'DKK_per_kWh' in df_prices.columns:
             df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1
-        # Shift price interval forward by 1 hour only in wintertime (CET, UTC+1)
-        # In summertime (CEST, UTC+2), do not shift
-        def shift_if_winter(ts):
-            # Europe/Copenhagen: UTC+1 is winter, UTC+2 is summer
-            if ts.tzinfo is not None and ts.utcoffset() == timedelta(hours=1):
-                return ts + pd.Timedelta(hours=1)
-            return ts
-        df_prices['time_start'] = df_prices['time_start'].apply(shift_if_winter)
+        # Shift price interval forward by 1 hour so price for 02:00–03:00 is matched with usage at 03:00
+        df_prices['time_start'] = df_prices['time_start'] + pd.Timedelta(hours=1)
         # Coerce errors to NaT to avoid ValueError on bad data
         print("\n--- DEBUG: df_prices (price) before NaT ---")
         with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
