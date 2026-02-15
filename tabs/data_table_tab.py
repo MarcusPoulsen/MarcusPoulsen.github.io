@@ -2,6 +2,7 @@ import streamlit as st
 
 def render(df, from_date, to_date, _filter_df_by_view_range):
     view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
+    st.markdown('Alle priser er med moms. Du kan filtrere perioden ved at bruge periodefilteret, og dykke ned i de enkelte timers forbrug.')
     df_tab = _filter_df_by_view_range(df, view_range)
     # Reorder and rename columns
     col_map = {
