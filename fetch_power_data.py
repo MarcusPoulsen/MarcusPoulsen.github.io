@@ -21,10 +21,10 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             data = response.json()
             df = pd.DataFrame(data)[['time_start', 'DKK_per_kWh']]
             # Parse as UTC, then convert to Europe/Copenhagen (local time with DST)
-            df['time_start'] = pd.to_datetime(df['time_start'], utc=True)
-            df['time_start'] = df['time_start'].dt.tz_convert('Europe/Copenhagen')
+            df['time_start_formated'] = pd.to_datetime(df['time_start'], utc=True)
+            df['time_start_formated'] = df['time_start_formated'].dt.tz_convert('Europe/Copenhagen')
             # Add time_end column (1 hour after time_start)
-            df['time_end'] = df['time_start'] + pd.Timedelta(hours=1)
+            df['time_end'] = df['time_start_formated'] + pd.Timedelta(hours=1)
             all_data.append(df)
         except Exception as e:
             print(f"Failed for {date_str}: {e}")
