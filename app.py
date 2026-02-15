@@ -357,37 +357,4 @@ if not st.session_state['df_data'].empty:
             peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
             st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
 
-    with tab3:
-        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
-        df_tab = _filter_df_by_view_range(df, view_range)
-
-        daily_summary = df_tab.groupby(df_tab['time'].dt.date).agg({
-            'usage_kwh': 'sum',
-            'total_udgift': 'sum',
-            'spot_pris': 'mean',
-            'tarif_pris': 'first'
-        }).reset_index()
-        daily_summary.columns = ['Date', 'Usage (kWh)', 'Total Cost (DKK)', 'Avg Spot Pris', 'Tarif Pris']
-        st.dataframe(daily_summary, use_container_width=True)
-
-    with tab4:
-        view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab4')
-        df_tab = _filter_df_by_view_range(df, view_range)
-
-        hourly_stats = df_tab.copy()
-        hourly_stats['hour_of_day'] = hourly_stats['time'].dt.hour
-        avg_by_hour = hourly_stats.groupby('hour_of_day').agg({
-            'usage_kwh': 'mean',
-            'spot_pris': 'mean',
-            'tarif_pris': 'first',
-            'total_pris_per_kwh': 'mean',
-            'total_udgift': 'mean'
-        }).reset_index()
-        avg_by_hour.columns = ['Hour', 'Avg Usage (kWh)', 'Avg Spot Pris', 'Tarif Pris', 'Avg Total Pris (DKK/kWh)', 'Avg Total Cost (DKK)']
-        st.dataframe(avg_by_hour, use_container_width=True)
-
-        st.markdown('**Insights:**')
-        if not hourly_stats.empty:
-            peak_hour = hourly_stats.groupby('hour_of_day')['spot_pris'].mean().idxmax()
-            st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {hourly_stats[hourly_stats["hour_of_day"]==peak_hour]["spot_pris"].mean():.3f} DKK/kWh)')
 
