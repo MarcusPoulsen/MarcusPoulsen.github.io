@@ -128,6 +128,14 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             width='stretch',
             key='monthly_car_editor'
         )
+        # Calculate net_price_total from the visible/edited table
+        if 'net_price' in edited.columns:
+            net_price_total = edited['net_price'].sum()
+            if net_price_total < 0:
+                net_label = 'Clever tilbagebetalt dig mere end du har betalt'
+            else:
+                net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
+            net_value = f"{net_price_total:.2f} DKK"
         for i, r in edited.iterrows():
             m = r['month']
             st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
