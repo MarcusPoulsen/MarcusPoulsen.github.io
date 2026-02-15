@@ -104,7 +104,7 @@ if 'df_data' not in st.session_state:
 if 'last_token' not in st.session_state:
     st.session_state['last_token'] = None
 
-if st.button('📊 Fetch Data', type='primary'):
+if st.button('📊 Hent data og beregn udgifter', type='primary'):
     if not token:
         st.error('Please enter a token')
     else:
