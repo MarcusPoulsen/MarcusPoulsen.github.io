@@ -128,18 +128,18 @@ if not st.session_state['df_data'].empty:
     # Summary metrics
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric('Total Usage', f"{df['usage_kwh'].sum():.1f} kWh")
+        st.metric('Total forbrug for hele perioden', f"{df['usage_kwh'].sum():.1f} kWh")
     with col2:
-        st.metric('Total Cost', f"{df['total_udgift'].sum():.2f} DKK")
+        st.metric('Total udgift for hele perioden', f"{df['total_udgift'].sum():.2f} DKK")
     with col3:
-        st.metric('Avg Daily Cost', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
+        st.metric('Gennemsnitlig daglig udgift', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
     with col4:
-        st.metric('Avg Spot Price', f"{df['spot_pris'].mean():.3f} DKK/kWh")
+        st.metric('Gennemsnitlig spotpris', f"{df['spot_pris'].mean():.3f} DKK/kWh")
     
     st.divider()
 
     # Tabs for different views (Car Charge first)
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(['🚗 Car Charge', '📈 Charts', '📊 Data Table', '📅 Daily Summary', '⏰ Hourly Stats'])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(['🚗 Clever bil opladning', '📈 Strømforbrug figurer', '📊 Data Deep dive', '📅 Daily Summary', '⏰ Hourly Stats'])
 
     with tab1:
         render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range)
