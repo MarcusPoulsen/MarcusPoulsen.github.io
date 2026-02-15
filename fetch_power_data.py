@@ -166,7 +166,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('went fine so far, now filtering out DST transition hours...')
     #df_power['time'] = df_power['time'].dt.floor('h')
     print('got to here, now applying filter for last Sunday of October 02:00-02:59...')
-    df_power['time_local'] = df_power['time'].dt.tz_localize(None)
+    # Normalize all times to UTC for consistent merging
+    df_power['time_utc'] = df_power['time'].dt.tz_convert('UTC')
 
     # Fetch prices
     print('Fetching electricity prices...')
@@ -192,7 +193,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         #df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
-        df_prices['time_local'] = df_prices['time_start'].dt.tz_localize(None)
+        df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
     else:
         print('Warning: Could not fetch price data')
         return df_power
@@ -217,13 +218,13 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print('Problematic values:', df_prices['time_start'].head(10).to_list())
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
-    # Merge power data with prices using naive local time to guarantee a match for every hour
-    print("\n--- DEBUG: Merging on 'time_local' ---")
-    df_merged = pd.merge(df_power, df_prices, left_on='time_local', right_on='time_local', how='left', suffixes=('', '_price'))
-    # After merge, drop time_local columns and keep time in Europe/Copenhagen
-    df_merged = df_merged.drop(columns=['time_local'])
-    if 'time_local_price' in df_merged.columns:
-        df_merged = df_merged.drop(columns=['time_local_price'])
+    # Merge power data with prices using UTC time to guarantee a match for every hour
+    print("\n--- DEBUG: Merging on 'time_utc' ---")
+    df_merged = pd.merge(df_power, df_prices, left_on='time_utc', right_on='time_utc', how='left', suffixes=('', '_price'))
+    # After merge, drop time_utc columns and keep time in Europe/Copenhagen
+    df_merged = df_merged.drop(columns=['time_utc'])
+    if 'time_utc_price' in df_merged.columns:
+        df_merged = df_merged.drop(columns=['time_utc_price'])
 
     # Add tariff column by aligning hourly tariff series
     try:
