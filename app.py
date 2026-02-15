@@ -53,7 +53,7 @@ def _filter_df_by_view_range(df, view_range):
 
 # Streamlit UI
 st.set_page_config(page_title='Power Usage Monitor', layout='wide')
-st.title('⚡ Power Usage & Cost Monitor')
+st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 
 # Date range selector for period filtering
 today = datetime.now().date()
@@ -67,17 +67,17 @@ else:
 
 col1, col2 = st.columns([2, 1])
 with col1:
-    st.markdown('Monitor your household power usage and costs for the last 30 days')
+    st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer.')
 with col2:
-    st.markdown('**Zone:** DK2 (Eastern Denmark)')
+    st.markdown('**Zone:** DK2 (Øst Danmark)')
 
 st.divider()
 
 # Token input (with security tip)
 token = st.text_input(
-    'Enter your Eloverblik refresh token:',
+    'Indtast din Eloverblik refresh token:',
     type='password',
-    help='Your token is not stored and only used for this session'
+    help='Din token gemmes ikke og bruges kun til denne session'
 )
 
 # Inputs for electric car detection
