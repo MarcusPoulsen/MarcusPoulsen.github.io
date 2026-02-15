@@ -105,17 +105,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
-        # Calculate net_price_total from display_table (where net_price is always present)
-        if 'net_price' in display_table.columns:
-            net_price_total = display_table['net_price'].sum()
-            if net_price_total < 0:
-                net_label = 'Clever tilbagebetalt dig mere end du har betalt'
-            else:
-                net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
-            net_value = f"{net_price_total:.2f} DKK"
-        # Now show the net_price metric in the 4th column
-        with c4:
-            st.metric(net_label, net_value)
+        # (Do not show the net_price metric here; only show after the data_editor below)
         # Move input fields to the bottom table (data_editor)
         display_table = merged.copy()
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
@@ -165,14 +155,16 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             width='stretch',
             key='monthly_car_editor'
         )
-        # Calculate net_price_total from the visible/edited table
+        # Calculate net_price_total from the visible/edited table and show the metric here
         if 'net_price' in edited.columns:
             net_price_total = edited['net_price'].sum()
             if net_price_total < 0:
-                net_label = 'Clever tilbagebetalt dig mere end du har betalt'
+                net_label = 'Clever har tilbagebetalt dig mere end du har betalt for din strøm til bilen'
             else:
-                net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
+                net_label = 'Clever har tilbagebetalt dig mindre end du har betalt for din strøm til bilen'
             net_value = f"{net_price_total:.2f} DKK"
+        with c4:
+            st.metric(net_label, net_value)
         for i, r in edited.iterrows():
             m = r['month']
             st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
