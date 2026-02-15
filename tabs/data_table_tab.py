@@ -3,7 +3,7 @@ import streamlit as st
 def render(df, from_date, to_date, _filter_df_by_view_range):
     view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab3')
     df_tab = _filter_df_by_view_range(df, view_range)
-    st.dataframe(df_tab, use_container_width=True, height=600)
+    st.dataframe(df_tab, width='stretch', height=600)
     csv = df_tab.to_csv(index=False)
     st.download_button(
         label='📥 Download as CSV',

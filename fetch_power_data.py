@@ -21,6 +21,7 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             data = response.json()
             df = pd.DataFrame(data)[['time_start', 'DKK_per_kWh']]
             df['time_start'] = pd.to_datetime(df['time_start'])
+            df['time_start'] = pd.to_datetime(df['time_start'], utc=True)
             all_data.append(df)
         except Exception as e:
             print(f"Failed for {date_str}: {e}")
@@ -43,7 +44,7 @@ def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, e
     else:
         end_ts = end_ts.tz_convert('Europe/Copenhagen')
     # Remove tzinfo before passing to pd.date_range with tz argument
-    idx = pd.date_range(start=start_ts.floor('H').replace(tzinfo=None), end=end_ts.floor('H').replace(tzinfo=None), freq='H', tz=ZoneInfo('Europe/Copenhagen'))
+    idx = pd.date_range(start=start_ts.floor('h').replace(tzinfo=None), end=end_ts.floor('h').replace(tzinfo=None), freq='h', tz=ZoneInfo('Europe/Copenhagen'))
     s = pd.Series(0.0, index=idx)
     try:
         tariffs = pd.read_csv('tariffs_manual.csv')
@@ -149,7 +150,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
     else:
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
-    df_power['time'] = df_power['time'].dt.floor('H')
+    df_power['time'] = df_power['time'].dt.floor('h')
     df_power['time_local'] = df_power['time'].dt.tz_localize(None)
 
     # Fetch prices
@@ -161,6 +162,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
             print(df_prices.head(100))
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
         # Remove ambiguous times for 2025-10-26 02:00:00 and 03:00:00 before any tz/floor operation
         ambiguous_mask = (df_prices['time_start'].dt.date == datetime(2025, 10, 26).date()) & (df_prices['time_start'].dt.hour.isin([2, 3]))
         df_prices = df_prices[~ambiguous_mask]
@@ -168,7 +170,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
-        df_prices['time_start'] = df_prices['time_start'].dt.floor('H')
+        df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
         df_prices['time_local'] = df_prices['time_start'].dt.tz_localize(None)
     else:
         print('Warning: Could not fetch price data')
@@ -185,12 +187,15 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
 
     # Ensure both merge columns are datetime
     df_power['time'] = pd.to_datetime(df_power['time'])
+    df_power['time'] = pd.to_datetime(df_power['time'], utc=True)
     try:
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], utc=True)
     except Exception as e:
         print('Error converting df_prices["time_start"] to datetime:', e)
         print('Problematic values:', df_prices['time_start'].head(10).to_list())
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
     # Merge power data with prices using naive local time to guarantee a match for every hour
     print("\n--- DEBUG: Merging on 'time_local' ---")
     df_merged = pd.merge(df_power, df_prices, left_on='time_local', right_on='time_local', how='left', suffixes=('', '_price'))
