@@ -23,7 +23,7 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
             # Parse as UTC, then convert to Europe/Copenhagen (local time with DST)
             df['time_start_original'] = df['time_start']  # Keep original for debugging
             df['time_start'] = pd.to_datetime(df['time_start'], utc=True)
-            df['time_start'] = df['time_start'].dt.tz_convert('Europe/Copenhagen')
+            df['time_start'] = df['time_start'].dt.tz_convert('Europe/Copenhagen').dt.tz_localize(None)
             # Add time_end column (1 hour after time_start)
             df['time_end'] = df['time_start'] + pd.Timedelta(hours=1)
             all_data.append(df)
