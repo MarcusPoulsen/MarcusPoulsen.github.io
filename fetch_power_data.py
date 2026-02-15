@@ -143,10 +143,12 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     # --- DEBUG: Show all rows of usage and price data before join ---
     # (df_prices is not available yet, so only print df_power here)
     print("\n--- DEBUG: df_power (usage) ---")
-    print(df_power.head(100))
+    print(df_power.head(20))
     
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
+    print("\n--- DEBUG: df_power (usage) --- after datetime conversion ---")
+    print(df_power.head(20))
     # Remove all data for the DST transition hour (last Sunday of October, 02:00-02:59) for any year
     def is_last_sunday_of_oct(dt):
         # Accepts both pd.Timestamp and datetime
