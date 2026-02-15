@@ -124,7 +124,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             name='Clever refusion (DKK)',
             marker_color='blue',
         ))
-        st.plotly_chart(fig_car, width='stretch')
         # --- End bar chart logic ---
         edited = st.data_editor(
             display_table,
