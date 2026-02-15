@@ -186,7 +186,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             df_prices = df_prices.dropna(subset=['time_start'])
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
-        df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
+        #df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
         df_prices['time_local'] = df_prices['time_start'].dt.tz_localize(None)
     else:
         print('Warning: Could not fetch price data')
