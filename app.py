@@ -146,5 +146,3 @@ if not st.session_state['df_data'].empty:
         render_daily_summary_tab(df, from_date, to_date, _filter_df_by_view_range)
     with tab5:
         render_hourly_stats_tab(df, from_date, to_date, _filter_df_by_view_range)
-
-
