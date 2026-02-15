@@ -138,9 +138,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
-    # Manually filter out ambiguous hours for 2025-10-26 02:00:00 and 03:00:00 before localizing
-    ambiguous_dates = [pd.Timestamp('2025-10-26 02:00:00'), pd.Timestamp('2025-10-26 03:00:00')]
-    df_power = df_power[~df_power['time'].isin(ambiguous_dates)]
+    # Remove ambiguous times for 2025-10-26 02:00:00 and 03:00:00 before any tz/floor operation
+    ambiguous_mask = (df_power['time'].dt.date == datetime(2025, 10, 26).date()) & (df_power['time'].dt.hour.isin([2, 3]))
+    df_power = df_power[~ambiguous_mask]
     if df_power['time'].dt.tz is None:
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
     else:
@@ -156,9 +156,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     if not df_prices.empty:
         # Coerce errors to NaT to avoid ValueError on bad data
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
-        # Manually filter out ambiguous hours for 2025-10-26 02:00:00 and 03:00:00 before localizing
-        ambiguous_dates = [pd.Timestamp('2025-10-26 02:00:00'), pd.Timestamp('2025-10-26 03:00:00')]
-        df_prices = df_prices[~df_prices['time_start'].isin(ambiguous_dates)]
+        # Remove ambiguous times for 2025-10-26 02:00:00 and 03:00:00 before any tz/floor operation
+        ambiguous_mask = (df_prices['time_start'].dt.date == datetime(2025, 10, 26).date()) & (df_prices['time_start'].dt.hour.isin([2, 3]))
+        df_prices = df_prices[~ambiguous_mask]
         if df_prices['time_start'].dt.tz is None:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
         else:
