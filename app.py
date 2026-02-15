@@ -69,14 +69,22 @@ else:
     from_date = date_range
     to_date = date_range
 
-# Inputs in three columns (token, charge_threshold, car_max_kwh)
-col_token, col_charge, col_max = st.columns(3)
-with col_token:
-    token = st.text_input(
-        'Indtast din Eloverblik refresh token:, klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her',
-        type='password',
-        help='Din token gemmes ikke og bruges kun til denne session'
-    )
+# Token input above columns
+token = st.text_input(
+    'Indtast din Eloverblik refresh token:, klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her',
+    type='password',
+    help='Din token gemmes ikke og bruges kun til denne session'
+)
+
+# Three columns: date, charge_threshold, car_max_kwh
+col_date, col_charge, col_max = st.columns(3)
+with col_date:
+    date_range = st.date_input('Periode', value=(default_from, today), help='Vælg start- og slutdato for perioden')
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        from_date, to_date = date_range
+    else:
+        from_date = date_range
+        to_date = date_range
 with col_charge:
     charge_threshold = st.number_input(
         'Elbil oplader flag',
