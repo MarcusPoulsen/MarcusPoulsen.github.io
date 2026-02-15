@@ -167,7 +167,10 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         ambiguous_mask = (df_prices['time_start'].dt.date == datetime(2025, 10, 26).date()) & (df_prices['time_start'].dt.hour.isin([2, 3]))
         df_prices = df_prices[~ambiguous_mask]
         if df_prices['time_start'].dt.tz is None:
-            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='first')
+            # Use ambiguous='NaT' to avoid AmbiguousTimeError for DST transitions
+            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
+            # Drop any NaT values that result from ambiguous times
+            df_prices = df_prices.dropna(subset=['time_start'])
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
