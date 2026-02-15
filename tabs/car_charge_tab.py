@@ -58,18 +58,13 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         merged['clever_kwh'] = clever_kwh_col
         merged['udeladning_kwh'] = udeladning_kwh_col
         # --- Bar chart logic moved here, after merged is defined ---
-        monthly_agg = monthly_car.copy()
-        clever_map = merged.set_index('month')[['clever_kwh', 'clever_rate']]
-        monthly_agg = monthly_agg.set_index('month')
-        monthly_agg['clever_kwh'] = clever_map['clever_kwh']
-        monthly_agg['clever_rate'] = clever_map['clever_rate']
-        monthly_agg['reimbursed'] = monthly_agg['clever_kwh'] * monthly_agg['clever_rate']
-        monthly_agg = monthly_agg.reset_index()
+        # Use adjusted_total for the bar chart (matches table and CSV)
+        monthly_agg = merged.copy()
         fig_car = go.Figure()
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
-            y=monthly_agg['car_cost'],
-            name='Opladningspris (DKK)',
+            y=monthly_agg['adjusted_total'],
+            name='Opladningspris (DKK, justeret)',
             marker_color='green',
         ))
         fig_car.add_trace(go.Bar(
