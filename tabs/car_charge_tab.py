@@ -14,23 +14,14 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     df_car['car_cost'] = df_car['car_kwh'] * (df_car['spot_pris'].fillna(0) + df_car['tarif_pris'].fillna(0) + afgift_series)
     daily_car = df_car.groupby(df_car['time'].dt.date).agg({'car_cost': 'sum', 'car_kwh': 'sum'}).reset_index()
     daily_car.columns = ['date', 'total_charge_cost', 'total_charge_kwh']
-    # Calculate net_price for the period (if available)
+    # Calculate net_price for the period from the monthly table if available
     net_price_total = None
-    if 'net_price' in df_car.columns:
-        net_price_total = df_car['net_price'].sum()
-    elif 'net_price' in df_tab.columns:
-        net_price_total = df_tab['net_price'].sum()
-    # Prepare label for net_price
-    if net_price_total is not None:
-        if net_price_total < 0:
-            net_label = 'Clever tilbagebetalt dig mere end du har betalt'
-        else:
-            net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
-        net_value = f"{net_price_total:.2f} DKK"
-    else:
-        net_label = 'Clever tilbagebetaling (netto)'
-        net_value = 'N/A'
+    net_label = 'Clever tilbagebetaling (netto)'
+    net_value = 'N/A'
+    # Try to get from merged table if it exists (after monthly_table is created)
 
+
+    # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
@@ -41,8 +32,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         total_cost = daily_car['total_charge_cost'].sum()
         avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
         st.metric('Gennemsnitlig kWh-pris for bil', f"{avg_price:.2f} DKK/kWh")
-    with c4:
-        st.metric(net_label, net_value)
+    # c4 will be filled after merged is created
     st.divider()
     # --- Monthly aggregation for new bar chart ---
     monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
@@ -81,6 +71,14 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         merged['korrektion_cost'] = merged['korrektion_kwh_clever'] * merged['average_price']
         merged['adjusted_total'] = merged['total_price'] + merged['korrektion_cost']
         merged['reimbursed'] = merged['clever_kwh'] * merged['clever_rate']
+        # Calculate net_price_total from merged table
+        if 'net_price' in merged.columns:
+            net_price_total = merged['net_price'].sum()
+            if net_price_total < 0:
+                net_label = 'Clever tilbagebetalt dig mere end du har betalt'
+            else:
+                net_label = 'Clever tilbagebetalt dig mindre end du har betalt'
+            net_value = f"{net_price_total:.2f} DKK"
         # --- Bar chart logic ---
         monthly_agg = merged.copy()
         fig_car = go.Figure()
@@ -104,6 +102,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             height=450
         )
         st.plotly_chart(fig_car, width='stretch')
+        # Now show the net_price metric in the 4th column
+        with c4:
+            st.metric(net_label, net_value)
         # --- End bar chart logic ---
         # Move input fields to the bottom table (data_editor)
         display_table = merged.copy()
@@ -139,4 +140,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         ]].to_csv(index=False)
         st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
     else:
+        # If no monthly data, still show the net_price metric (fallback to N/A)
+        with c4:
+            st.metric(net_label, net_value)
         st.info('Ingen månedlig opladningsdata i valgt periode')
