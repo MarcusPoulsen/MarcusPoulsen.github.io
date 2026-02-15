@@ -149,7 +149,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     print('Fetching electricity prices...')
     df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
     if not df_prices.empty:
-        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
+        # Coerce errors to NaT to avoid ValueError on bad data
+        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
         if df_prices['time_start'].dt.tz is None:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
         else:
