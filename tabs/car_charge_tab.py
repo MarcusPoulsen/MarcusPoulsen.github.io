@@ -139,9 +139,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             height=450
         )
         st.plotly_chart(fig_car, width='stretch')
-        # Now show the net_price metric in the 4th column
-        with c4:
-            st.metric(net_label, net_value)
         # --- End bar chart logic ---
         edited = st.data_editor(
             display_table,
