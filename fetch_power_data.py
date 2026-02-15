@@ -160,8 +160,13 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         print("\n--- DEBUG: df_prices (price) before NaT ---")
         with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
             print(df_prices.head(100))
-        df_prices['time_start'] = df_prices['time_start'].astype(str).str.strip()
-        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
+            # Ensure all values are string before stripping
+            df_prices['time_start'] = df_prices['time_start'].astype(str).str.strip()
+            df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
+            # Print problematic values if any NaT remain
+            if df_prices['time_start'].isna().any():
+                print("\n--- DEBUG: Problematic time_start values (NaT after conversion) ---")
+                print(df_prices.loc[df_prices['time_start'].isna(), 'time_start'])
         # Remove ambiguous times for 2025-10-26 02:00:00 and 03:00:00 before any tz/floor operation
         ambiguous_mask = (df_prices['time_start'].dt.date == datetime(2025, 10, 26).date()) & (df_prices['time_start'].dt.hour.isin([2, 3]))
         df_prices = df_prices[~ambiguous_mask]
