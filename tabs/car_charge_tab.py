@@ -16,9 +16,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     daily_car.columns = ['date', 'total_charge_cost', 'total_charge_kwh']
     c1, c2 = st.columns(2)
     with c1:
-        st.metric('Total charge cost', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
+        st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
     with c2:
-        st.metric('Total kWh charged', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
+        st.metric('Total kwH opladet i periode', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
     st.divider()
     fig_car = go.Figure()
     fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
