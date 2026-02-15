@@ -36,14 +36,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     st.divider()
     # --- Monthly aggregation for new bar chart ---
     monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
-    if not monthly_car.empty:
-        monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
-        monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
-        # Calculate total cost and total clever reimbursement per month
-        monthly_agg = monthly_car.copy()
-        # Use clever_kwh and clever_rate from merged (already aligned by month)
-        # The merged DataFrame is created below, so we need to move the bar chart after merged is created
-        # So, move the bar chart code to after merged is defined
+    # (Bar chart logic is handled after merged table is created)
     # ...existing code...
     if not monthly_car.empty:
         monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
