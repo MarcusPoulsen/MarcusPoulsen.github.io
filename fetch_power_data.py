@@ -180,23 +180,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         # Add moms (25%) to spot price
         if 'DKK_per_kWh' in df_prices.columns:
             df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1
-        # Shift price interval forward by 1 hour so price for 02:00–03:00 is matched with usage at 03:00
-        df_prices['time_start'] = df_prices['time_start'] + pd.Timedelta(hours=1)
-        # Coerce errors to NaT to avoid ValueError on bad data
-        print("\n--- DEBUG: df_prices (price) before NaT ---")
-        with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
-            print(df_prices.head(100))
-        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
-        df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
-        # Remove all data for the DST transition hour (last Sunday of October, 02:00-02:59) for any year
-        # Remove all ambiguous times (DST transitions) for any year
-        if df_prices['time_start'].dt.tz is None:
-            df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
-            df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='NaT')
-            df_prices = df_prices.dropna(subset=['time_start'])
-        else:
-            df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
-        #df_prices['time_start'] = df_prices['time_start'].dt.floor('h')
+        # time_start and time_end are already datetimes in Europe/Copenhagen from fetch_el_price_range
+        # Add a UTC column for merging
         df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
     else:
         print('Warning: Could not fetch price data')
