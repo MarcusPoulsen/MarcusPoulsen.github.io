@@ -75,7 +75,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             x=monthly_agg['month'],
             y=monthly_agg['adjusted_total'],
             name='Opladningspris (DKK, justeret)',
-            marker_color='green',
+            marker_color='green',))
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
