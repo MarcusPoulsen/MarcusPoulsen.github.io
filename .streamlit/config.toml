@@ -2,12 +2,13 @@
 headless = true
 port = 8503
 enableCORS = false
+
 [theme]
-base = "dark"
+base = "light"
 primaryColor = "#FF6B35"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#161B22"
-textColor = "#FFFFFF"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
 font = "sans serif"
 
 [client]
