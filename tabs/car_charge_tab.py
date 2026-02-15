@@ -42,6 +42,28 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         merged = pd.merge(monthly_table, clever_sats_df, on='month', how='left')
         merged['sats'] = merged['sats'].astype(float).fillna(0.0)
         merged = merged.rename(columns={'sats': 'clever_rate'})
+        # --- Separate clever_kwh input table ---
+        clever_kwh_input = pd.DataFrame({
+            'month': merged['month'],
+            'clever_kwh': [float(st.session_state.get(f'clever_kwh_input_{m}', r['kWh opladet (automatisk detekteret)'])) for m, r in merged[['month', 'kWh opladet (automatisk detekteret)']].iterrows()]
+        })
+        st.markdown('#### Indtast kWh ifølge Clever pr. måned')
+        clever_kwh_edited = st.data_editor(
+            clever_kwh_input,
+            column_config={
+                'clever_kwh': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
+            },
+            disabled=['month'],
+            hide_index=True,
+            width='stretch',
+            key='clever_kwh_input_editor'
+        )
+        if st.button('Gem clever kWh'):
+            for i, r in clever_kwh_edited.iterrows():
+                m = r['month']
+                st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
+                st.session_state[f'clever_kwh_input_{m}'] = r['clever_kwh']
+            st.experimental_rerun()
         clever_kwh_col = []
         udeladning_kwh_col = []
         for i, r in merged.iterrows():
