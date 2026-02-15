@@ -169,12 +169,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
             st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
         csv = edited[[
-            'month', 'kWh opladet (automatisk detekteret)', 'clever_kwh', 'korrektion_kwh_clever',
-            'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
-            'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
-            'udeladning_kwh', 'udeladning_cost'
-        ]].to_csv(index=False)
-        st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
+                    st.metric(net_label, net_value)
     else:
         # If no monthly data, still show the net_price metric (fallback to N/A)
         with c4:
