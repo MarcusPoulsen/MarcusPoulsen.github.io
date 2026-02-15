@@ -29,8 +29,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     fig_car.add_trace(go.Bar(x=daily_car['date'], y=daily_car['total_charge_cost'], name='Charge Cost (DKK)', marker_color='green'))
     fig_car.add_trace(go.Line(x=daily_car['date'], y=daily_car['total_charge_kwh'], name='Charged kWh', yaxis='y2', line=dict(color='red', width=3)))
     fig_car.update_layout(title='Dagligt forbrug KwH og pris', xaxis_title='Date', yaxis=dict(title='Cost (DKK)'), yaxis2=dict(title='kWh', overlaying='y', side='right'), height=450)
-    st.plotly_chart(fig_car, use_container_width=True)
-    monthly_car = df_car.set_index('time').resample('M').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
+    st.plotly_chart(fig_car, width='stretch')
+    monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
     if not monthly_car.empty:
         monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
         monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
@@ -61,7 +61,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             },
             disabled=['month', 'kwh_charged', 'average_price', 'total_price', 'clever_rate'],
             hide_index=True,
-            use_container_width=True,
+            width='stretch',
             key='monthly_car_editor'
         )
         for i, r in edited.iterrows():
@@ -82,7 +82,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
             'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
             'udeladning_kwh', 'udeladning_cost'
-        ]], use_container_width=True)
+        ]], width='stretch')
         csv = display_table[[
             'month', 'kwh_charged', 'clever_kwh', 'korrektion_kwh_clever',
             'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',

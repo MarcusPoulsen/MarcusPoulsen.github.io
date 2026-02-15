@@ -10,4 +10,4 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         'tarif_pris': 'first'
     }).reset_index()
     daily_summary.columns = ['Date', 'Usage (kWh)', 'Total Cost (DKK)', 'Avg Spot Pris', 'Tarif Pris']
-    st.dataframe(daily_summary, use_container_width=True)
+    st.dataframe(daily_summary, width='stretch')
