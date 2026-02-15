@@ -143,9 +143,16 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
-    # Remove all data on October 26 between hour 01 and 03 (inclusive of 01, exclusive of 03) for any year
-    mask_oct26 = (df_power['time'].dt.month == 10) & (df_power['time'].dt.day == 26) & (df_power['time'].dt.hour >= 1) & (df_power['time'].dt.hour < 3)
-    df_power = df_power[~mask_oct26]
+    # Remove all data for the DST transition hour (last Sunday of October, 02:00-02:59) for any year
+    def is_last_sunday_of_oct(dt):
+        return (
+            dt.month == 10 and
+            dt.weekday() == 6 and
+            dt.day >= 25 and
+            dt == (dt + pd.offsets.Week(weekday=6))
+        )
+    mask_dst = df_power['time'].apply(lambda x: is_last_sunday_of_oct(x) and x.hour == 2)
+    df_power = df_power[~mask_dst]
     if df_power['time'].dt.tz is None:
         df_power['time'] = df_power['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='raise')
     else:
@@ -163,9 +170,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
             print(df_prices.head(100))
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
-        # Remove all data on October 26 between hour 01 and 03 (inclusive of 01, exclusive of 03) for any year
-        mask_oct26 = (df_prices['time_start'].dt.month == 10) & (df_prices['time_start'].dt.day == 26) & (df_prices['time_start'].dt.hour >= 1) & (df_prices['time_start'].dt.hour < 3)
-        df_prices = df_prices[~mask_oct26]
+        # Remove all data for the DST transition hour (last Sunday of October, 02:00-02:59) for any year
+        mask_dst = df_prices['time_start'].apply(lambda x: is_last_sunday_of_oct(x) and x.hour == 2)
+        df_prices = df_prices[~mask_dst]
         if df_prices['time_start'].dt.tz is None:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_localize('Europe/Copenhagen', ambiguous='raise')
         else:
