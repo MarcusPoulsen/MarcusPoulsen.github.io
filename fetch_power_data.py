@@ -163,6 +163,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     else:
         print('debug: power data is timezone-aware, converting to Europe/Copenhagen and filtering out DST transition hours')
         df_power['time'] = df_power['time'].dt.tz_convert('Europe/Copenhagen')
+        print('went fine so far, now filtering out DST transition hours...')
     df_power['time'] = df_power['time'].dt.floor('h')
     df_power['time_local'] = df_power['time'].dt.tz_localize(None)
 
