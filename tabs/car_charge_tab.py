@@ -48,7 +48,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             m = r['month']
             key_kwh = f'clever_kwh_{m}'
             key_udelad = f'udeladning_kwh_{m}'
-            clever_kwh_col.append(float(st.session_state.get(key_kwh, r['kwh_charged'])))
+            clever_kwh_col.append(float(st.session_state.get(key_kwh, r['kWh opladet (automatisk detekteret)'])))
             udeladning_kwh_col.append(float(st.session_state.get(key_udelad, 0.0)))
         merged['clever_kwh'] = clever_kwh_col
         merged['udeladning_kwh'] = udeladning_kwh_col
@@ -59,7 +59,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'clever_kwh': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
                 'udeladning_kwh': st.column_config.NumberColumn('Udeladning kWh', min_value=0.0, step=0.01, format='%.2f'),
             },
-            disabled=['month', 'kwh_charged', 'average_price', 'total_price', 'clever_rate'],
+            disabled=['month', 'kWh opladet (automatisk detekteret)', 'average_price', 'total_price', 'clever_rate'],
             hide_index=True,
             width='stretch',
             key='monthly_car_editor'
