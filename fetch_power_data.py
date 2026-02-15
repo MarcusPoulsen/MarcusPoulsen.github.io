@@ -172,6 +172,8 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         # time_start and time_end are already datetimes in Europe/Copenhagen from fetch_el_price_range
         # Add a UTC column for merging
         df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
+        print("\n--- DEBUG: df_power (usage) --- after datetime conversion in this moms place---")
+        print(df_power.head(20))    
     else:
         print('Warning: Could not fetch price data')
         return df_power
@@ -187,7 +189,7 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
 
     # Ensure both merge columns are datetime
     df_power['time'] = pd.to_datetime(df_power['time'])
-    df_power['time'] = pd.to_datetime(df_power['time'], utc=True)
+    df_power['time'] = pd.to_datetime(df_power['time'])
     try:
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'])
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], utc=True)
