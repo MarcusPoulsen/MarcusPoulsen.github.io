@@ -155,9 +155,6 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         else:
             df_prices['time_start'] = df_prices['time_start'].dt.tz_convert('Europe/Copenhagen')
         df_prices['time_start'] = df_prices['time_start'].dt.floor('H', ambiguous='NaT')
-        print('--- DEBUG: Spot price data ---')
-        print('Spot price data range:', df_prices['time_start'].min(), 'to', df_prices['time_start'].max())
-        print(df_prices.tail(20))
     else:
         print('Warning: Could not fetch price data')
         return df_power
