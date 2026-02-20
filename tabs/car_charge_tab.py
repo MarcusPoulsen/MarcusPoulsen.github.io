@@ -23,6 +23,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     # Try to get from merged table if it exists (after monthly_table is created)
 
     st.markdown('##### Hjemmeopladning af elbil - estimeret forbrug og udgift')
+    st.markdown(
+        'Indtast dine faktiske Clever kWh for hver måned (fra Clever appen) i tabellen nedenfor. Hvis du har udeladning, kan du også indtaste det. Tabellen beregner automatisk korrektioner og viser din samlede udgift med og uden Clever-abonnement. Jo mere præcise dine indtastninger er, jo bedre bliver beregningen.'
+    )
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -87,7 +90,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         ))
         fig_car.update_layout(
             barmode='group',
-            title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet. Du får det bedste resultat ved at udfylde tabellen nedenfor med de korrekte kWh for hver måned',
+            title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet. Du får det bedste resultat ved at udfylde tabellen nedenfor med input fra din Clever app',
             xaxis_title='Måned',
             yaxis_title='DKK',
             height=450
@@ -137,7 +140,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         ))
         fig_with_without.update_layout(
             barmode='group',
-            title='Månedlig totaludgift med og uden Clever',
+            title='Sammenlign din totale udgift med og uden Clever, inklusiv eventuel udeladning',
             xaxis_title='Måned',
             yaxis_title='DKK',
             height=400
