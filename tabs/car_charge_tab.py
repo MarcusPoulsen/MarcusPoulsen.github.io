@@ -71,13 +71,13 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             x=monthly_agg['month'],
             y=monthly_agg['adjusted_total'],
             name='Opladningspris (DKK, justeret)',
-            marker_color='green',
+            marker_color='red',
         ))
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
             name='Clever refusion (DKK)',
-            marker_color='blue',
+            marker_color='green',
         ))
         fig_car.update_layout(
             barmode='group',
@@ -143,6 +143,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Netto strøm pris',
             'Clever fastpris',
         ]
+        st.markdown('#### Månedlig udgiftsoversigt (detaljeret tabel)')
         edited = st.data_editor(
             display_table[display_columns],
             column_config={
