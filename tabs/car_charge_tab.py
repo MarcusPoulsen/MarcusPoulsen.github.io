@@ -131,6 +131,10 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'KWh auto detekteret',
             'KwH Iflg. Clever',
             'ikke detekteret kWh',
+            'udeladning_kwh',
+            'Total udgift med Clever',
+            'udeladning_cost',
+            'Total udgift uden Clever',
             'Gns. KWh pris',
             'Clever tilbagebetaling pr KWh',
             'Total udgift',
@@ -138,10 +142,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Tilbagebetalt fra Clever',
             'Netto strøm pris',
             'Clever fastpris',
-            'Total udgift med Clever',
-            'udeladning_kwh',
-            'udeladning_cost',
-            'Total udgift uden Clever',
         ]
         edited = st.data_editor(
             display_table[display_columns],
