@@ -75,6 +75,10 @@ def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, e
     return s
 
 def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_kwh: float = 11.0, from_date=None, to_date=None):
+        # --- CHANGE: Price fetching now uses CSV for historical data ---
+        # Loads prices from 'el_prices_2024_2026.csv' for 2024-2025 and Jan 2026.
+        # Only fetches missing hours from API, reducing API calls and speeding up app.
+        # See download_prices_to_csv.py for CSV generation.
     """Fetch hourly power usage for a period and merge with prices.
 
     If `refresh_token` is None, the function will read 'token.txt'.
@@ -162,24 +166,59 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
 
 
 
-    # Fetch prices
-    print('Fetching electricity prices...')
-    df_prices = fetch_el_price_range(str(from_date), str(to_date), zone='DK2')
-    if not df_prices.empty:
-        # Add moms (25%) to spot price
-        if 'DKK_per_kWh' in df_prices.columns:
-            df_prices['DKK_per_kWh'] = df_prices['DKK_per_kWh'] * 1.25
-        # time_start and time_end are already datetimes in Europe/Copenhagen from fetch_el_price_range
-        # Add a UTC column for merging
-        df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
-        print("\n--- DEBUG: df_power (usage) --- after datetime conversion in this moms place---")
-        print(df_power.head(20))    
+    # --- Price fetching logic updated ---
+    # Try to load historical prices from CSV, only fetch missing prices from API
+    print('Loading historical prices from CSV if available...')
+    try:
+        df_prices_hist = pd.read_csv('historic_el_prices.csv')
+        df_prices_hist['time_start'] = pd.to_datetime(df_prices_hist['time_start'])
+        df_prices_hist['time_start'] = df_prices_hist['time_start'].dt.tz_localize('Europe/Copenhagen')
+    except Exception as e:
+        print('No historical price CSV found or error:', e)
+        df_prices_hist = pd.DataFrame()
+
+    # Determine which hours are missing from CSV
+    from_dt = pd.to_datetime(str(from_date)).tz_localize('Europe/Copenhagen')
+    to_dt = pd.to_datetime(str(to_date)).tz_localize('Europe/Copenhagen')
+    hours_needed = pd.date_range(start=from_dt, end=to_dt, freq='h', tz='Europe/Copenhagen')
+    if not df_prices_hist.empty:
+        hours_in_csv = pd.DatetimeIndex(df_prices_hist['time_start'])
+        hours_missing = hours_needed.difference(hours_in_csv)
     else:
-        print('Warning: Could not fetch price data')
-        return df_power
+        hours_missing = hours_needed
+
+    # Fetch missing prices from API
+    df_prices_api = pd.DataFrame()
+    if len(hours_missing) > 0:
+        print(f'Fetching {len(hours_missing)} missing hours from API...')
+        # Group missing hours by month for efficient API calls
+        months = sorted(set([(dt.year, dt.month) for dt in hours_missing]))
+        for year, month in months:
+            start = pd.Timestamp(year=year, month=month, day=1, tz='Europe/Copenhagen')
+            end = (start + pd.offsets.MonthEnd(1))
+            # Clip to needed range
+            start = max(start, hours_missing[0])
+            end = min(end, hours_missing[-1])
+            df = fetch_el_price_range(start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'), zone='DK2')
+            if not df.empty:
+                if 'DKK_per_kWh' in df.columns:
+                    df['DKK_per_kWh'] = df['DKK_per_kWh'] * 1.25
+                df_prices_api = pd.concat([df_prices_api, df], ignore_index=True)
+        # Filter to only needed hours
+        df_prices_api = df_prices_api[df_prices_api['time_start'].isin(hours_missing)]
+
+    # Combine historical and API prices
+    df_prices = pd.concat([df_prices_hist, df_prices_api], ignore_index=True)
+    # Filter to requested range
+    df_prices = df_prices[df_prices['time_start'].isin(hours_needed)]
+    # Add UTC column for merging
+    df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
     print("\n--- DEBUG: df_prices (price) ---")
     with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
-            print(df_prices.head(100))
+        print(df_prices.head(100))
+
+    # --- End of price fetching logic ---
+    # Comments: Now loads prices from CSV for historical periods, only fetches missing hours from API. This reduces API calls and speeds up app.
     
     # Fetch tariff prices (build hourly series)
     print('Fetching tariff prices...')
