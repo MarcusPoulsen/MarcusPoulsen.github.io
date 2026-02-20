@@ -51,9 +51,6 @@ def _filter_df_by_view_range(df, view_range):
     except Exception:
         return df
 
-# Streamlit UI
-st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark). Beregneren kan bruges til at sammenligne den beregnede udgift til strøm til bilen, sat op i mod den tilbagebetaling clever giver for opladning hjemme, og dermed give en indikation på om det er økonomisk fordelagtigt at lade hjemme eller ej.')
-
 # Reduce top space above title using custom CSS
 st.markdown(
     """
