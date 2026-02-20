@@ -148,6 +148,8 @@ if not st.session_state['df_data'].empty:
     df['afgift_pris'] = df.get('afgift_pris', pd.Series(0.0))
     df['total_pris_per_kwh'] = df['spot_pris'].fillna(0) + df['tarif_pris'].fillna(0) + df['afgift_pris'].fillna(0)
 
+    st.divider()
+    st.markdown(f"### Hustandsforbrug og udgifter {from_date} til {to_date}")
     # Summary metrics
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
