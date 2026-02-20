@@ -112,6 +112,7 @@ with col_max:
 with col_btn:
     fetch_btn = st.button('📊 Hent data og beregn udgifter', type='primary')
 
+
 # Use the button from the new column layout
 if fetch_btn:
     if not token:
@@ -131,18 +132,6 @@ if 'df_data' not in st.session_state:
 
 if 'last_token' not in st.session_state:
     st.session_state['last_token'] = None
-
-if st.button('📊 Hent data og beregn udgifter', type='primary'):
-    if not token:
-        st.error('Please enter a token')
-    else:
-        df = fetch_power_data(token, charge_threshold, car_max_kwh, from_date, to_date)
-        if df is not None and not df.empty:
-            st.session_state['df_data'] = df
-            st.session_state['last_token'] = token
-            st.success('✅ Data fetched and cached for this session')
-        else:
-            st.warning('No data fetched')
 
 # Render results if we have cached data
 if not st.session_state['df_data'].empty:
