@@ -98,6 +98,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
+        display_table['total_udgift_uden_clever_abbonemnt'] = display_table['adjusted_total'] + 70 - display_table['clever_kwh'] * 0.9 + display_table['udeladning_cost']
+
+
         display_table = display_table.rename(columns={
             'month': 'Periode',
             'kWh opladet (automatisk detekteret)': 'KWh auto detekteret',
@@ -111,6 +114,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'net_price': 'Netto strøm pris',
             'clever_abbonnemnt': 'Clever fastpris',
             'total_udgift_ved_clever_abbonemnt': 'Total udgift med Clever',
+            'total_udgift_uden_clever_abbonemnt': 'Total udgift uden Clever',
         })
         display_columns = [
             'Periode',
@@ -127,6 +131,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Total udgift med Clever',
             'udeladning_kwh',
             'udeladning_cost',
+            'Total udgift uden Clever',
         ]
         edited = st.data_editor(
             display_table[display_columns],
@@ -145,6 +150,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'Total udgift med Clever': st.column_config.NumberColumn('Total\nudgift\nmed\nClever'),
                 'udeladning_kwh': st.column_config.NumberColumn('Udeladning\nKWh', min_value=0.0, step=0.01, format='%.2f'),
                 'udeladning_cost': st.column_config.NumberColumn('Udeladning\nkost'),
+                'total_udgift_uden_Clever': st.column_config.NumberColumn('Total\nudgift\nuden\nClever'),
             },
             disabled=[
                 'Periode',
@@ -158,6 +164,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'Clever fastpris',
                 'Total udgift med Clever',
                 'udeladning_cost',
+                'Total udgift uden Clever',
             ],
             hide_index=True,
             width='stretch',
@@ -194,6 +201,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Total udgift med Clever',
             'udeladning_kwh',
             'udeladning_cost',
+            'Total udgift uden Clever',
         ]].to_csv(index=False)
         st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
     else:
