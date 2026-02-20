@@ -76,15 +76,16 @@ st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en
 today = datetime.now().date()
 default_from = today - timedelta(days=30)
 
-# Token input above columns
-token = st.text_input(
-    'Indtast din Eloverblik refresh token:, klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her',
-    type='password',
-    help='Din token gemmes ikke og bruges kun til denne session'
-)
 
-# Three columns: date, charge_threshold, car_max_kwh
-col_date, col_charge, col_max = st.columns(3)
+# Five columns: token, periode, elbil oplader flag, max opladningshastighed, beregn knap
+col_token, col_date, col_charge, col_max, col_btn = st.columns(5)
+with col_token:
+    token = st.text_input(
+        'Eloverblik token',
+        placeholder='Indtast din refresh token',
+        type='password',
+        help='Klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her. Din token gemmes ikke og bruges kun til denne session.'
+    )
 with col_date:
     date_range = st.date_input('Periode', value=(default_from, today), help='Vælg start- og slutdato for perioden', key='periode_date_input')
     if isinstance(date_range, tuple) and len(date_range) == 2:
@@ -108,6 +109,21 @@ with col_max:
         step=0.1,
         help='Maksimalt antal kWh bilen kan tage per time (fx 11)'
     )
+with col_btn:
+    fetch_btn = st.button('📊 Hent data og beregn udgifter', type='primary')
+
+# Use the button from the new column layout
+if fetch_btn:
+    if not token:
+        st.error('Please enter a token')
+    else:
+        df = fetch_power_data(token, charge_threshold, car_max_kwh, from_date, to_date)
+        if df is not None and not df.empty:
+            st.session_state['df_data'] = df
+            st.session_state['last_token'] = token
+            st.success('✅ Data fetched and cached for this session')
+        else:
+            st.warning('No data fetched')
 
 # Persist fetched data across reruns so date filters don't force refetch
 if 'df_data' not in st.session_state:
