@@ -121,18 +121,18 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         fig_with_without = go.Figure()
         fig_with_without.add_trace(go.Bar(
             x=display_table['month'],
-            y=display_table['total_udgift_ved_clever_abbonemnt'],
-            name='Med Clever',
-            marker_color='green',
-            text=display_table['total_udgift_ved_clever_abbonemnt'].round(0),
-            textposition='inside',
-        ))
-        fig_with_without.add_trace(go.Bar(
-            x=display_table['month'],
             y=display_table['total_udgift_uden_clever_abbonemnt'],
             name='Uden Clever',
             marker_color='blue',
             text=display_table['total_udgift_uden_clever_abbonemnt'].round(0),
+            textposition='inside',
+        ))
+        fig_with_without.add_trace(go.Bar(
+            x=display_table['month'],
+            y=display_table['total_udgift_ved_clever_abbonemnt'],
+            name='Med Clever',
+            marker_color='green',
+            text=display_table['total_udgift_ved_clever_abbonemnt'].round(0),
             textposition='inside',
         ))
         fig_with_without.update_layout(
