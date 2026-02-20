@@ -25,10 +25,11 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
 
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
+    st.markdown('##### Hjemmeopladning af elbil - estimeret forbrug og udgift')
     with c1:
-        st.metric('Total hjemmeopladningsudgifter for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
+        st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
     with c2:
-        st.metric('Total kwH opladet hjemnme i periode', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
+        st.metric('Total kwH opladet i periode', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
     with c3:
         total_kwh = daily_car['total_charge_kwh'].sum()
         total_cost = daily_car['total_charge_cost'].sum()
