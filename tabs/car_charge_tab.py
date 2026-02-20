@@ -147,8 +147,26 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             marker_color='blue',
         ))
         # --- End bar chart logic ---
+        # Ensure displayed table uses the same columns and order as the CSV
+        display_columns = [
+            'Periode',
+            'KWh opladet automatisk detekteret',
+            'KwH Ifølge Clever',
+            'Ekstra Kwh (ikke detekteret)',
+            'Gennemsnits opladningspris',
+            'Clever tilbagebetaling pr kwh',
+            'Total opladningspris',
+            'Ikke detekteret kwh total pris',
+            'Totalpris inklusiv ikke detekteret',
+            'Tilbagebetalt fra Clever',
+            'Netto strøm pris',
+            'Clever',
+            'Total udgift med Clever',
+            'udeladning_kwh',
+            'udeladning_cost',
+        ]
         edited = st.data_editor(
-            display_table,
+            display_table[display_columns],
             column_config={
                 'Clever tilbagebetaling pr kwh': st.column_config.NumberColumn('Clever tilbagebetaling pr kWh', min_value=0.0, step=0.01, format='%.2f', disabled=True),
                 'KwH Ifølge Clever': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
