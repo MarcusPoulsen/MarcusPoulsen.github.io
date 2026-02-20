@@ -93,43 +93,43 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
         display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
         display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
-        display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
-        display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
-        display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
-        display_table['clever_abbonnemnt'] = 799.0
-        display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
-        # Rearranged and renamed columns as requested
-        display_table = display_table[[
-            'month',
-            'kWh opladet (automatisk detekteret)',
-            'clever_kwh',
-            'korrektion_kwh_clever',
-            'average_price',
-            'clever_rate',
-            'total_price',
-            'korrektion_cost',
-            'adjusted_total',
-            'reimbursed',
-            'net_price',
-            'clever_abbonnemnt',
-            'total_udgift_ved_clever_abbonemnt',
-            'udeladning_kwh',
-            'udeladning_cost',
-        ]]
-        display_table = display_table.rename(columns={
-            'month': 'Periode',
-            'kWh opladet (automatisk detekteret)': 'KWh opladet automatisk detekteret',
-            'clever_kwh': 'KwH Ifølge Clever',
-            'korrektion_kwh_clever': 'Ekstra Kwh (ikke detekteret)',
-            'average_price': 'Gennemsnits opladningspris',
-            'clever_rate': 'Clever tilbagebetaling pr kwh',
-            'total_price': 'Total opladningspris',
-            'korrektion_cost': 'Ikke detekteret kwh total pris',
-            'adjusted_total': 'Totalpris inklusiv ikke detekteret',
-            'reimbursed': 'Tilbagebetalt fra Clever',
-            'net_price': 'Netto strøm pris',
-            'clever_abbonnemnt': 'Clever',
-            'total_udgift_ved_clever_abbonemnt': 'Total udgift med Clever',
+            edited = st.data_editor(
+                display_table[display_columns],
+                column_config={
+                    'Periode': st.column_config.TextColumn('Periode', width='small'),
+                    'KWh opladet automatisk detekteret': st.column_config.NumberColumn('KWh\nopladet\naut.\ndetekteret', width='small'),
+                    'KwH Ifølge Clever': st.column_config.NumberColumn('kWh\nClever', min_value=0.0, step=0.01, format='%.2f', width='small'),
+                    'Ekstra Kwh (ikke detekteret)': st.column_config.NumberColumn('Ekstra\nKWh\n(ikke\ndetekteret)', width='small'),
+                    'Gennemsnits opladningspris': st.column_config.NumberColumn('Gns.\nopladningspris', width='small'),
+                    'Clever tilbagebetaling pr kwh': st.column_config.NumberColumn('Clever\ntbg.\npr kWh', min_value=0.0, step=0.01, format='%.2f', disabled=True, width='small'),
+                    'Total opladningspris': st.column_config.NumberColumn('Total\nopladningspris', width='small'),
+                    'Ikke detekteret kwh total pris': st.column_config.NumberColumn('Ikke\ndetekteret\npris', width='small'),
+                    'Totalpris inklusiv ikke detekteret': st.column_config.NumberColumn('Totalpris\ninkl.\nikke\ndetekteret', width='small'),
+                    'Tilbagebetalt fra Clever': st.column_config.NumberColumn('Tbg.\nfra\nClever', width='small'),
+                    'Netto strøm pris': st.column_config.NumberColumn('Netto\npris', width='small'),
+                    'Clever': st.column_config.NumberColumn('Clever', width='small'),
+                    'Total udgift med Clever': st.column_config.NumberColumn('Total\nudgift\nClever', width='small'),
+                    'udeladning_kwh': st.column_config.NumberColumn('Udl.\nKWh', min_value=0.0, step=0.01, format='%.2f', width='small'),
+                    'udeladning_cost': st.column_config.NumberColumn('Udl.\nkost', width='small'),
+                },
+                disabled=[
+                    'Periode',
+                    'KWh opladet automatisk detekteret',
+                    'Gennemsnits opladningspris',
+                    'Total opladningspris',
+                    'Ekstra Kwh (ikke detekteret)',
+                    'Ikke detekteret kwh total pris',
+                    'Totalpris inklusiv ikke detekteret',
+                    'Tilbagebetalt fra Clever',
+                    'Netto strøm pris',
+                    'Clever',
+                    'Total udgift med Clever',
+                    'udeladning_cost',
+                ],
+                hide_index=True,
+                width='fit-content',
+                key='monthly_car_editor'
+            )
         })
         # --- Bar chart logic ---
         monthly_agg = merged.copy()
