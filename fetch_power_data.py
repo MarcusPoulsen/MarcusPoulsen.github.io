@@ -30,6 +30,7 @@ def fetch_el_price_range(start_date: str, end_date: str, zone: str = "DK2") -> p
         except Exception as e:
             print(f"Failed for {date_str}: {e}")
             
+            
     return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
 
 def fetch_tariff_data(access_token: str, points: list, start_ts: pd.Timestamp, end_ts: pd.Timestamp) -> pd.Series:
@@ -146,13 +147,13 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
 
     # --- DEBUG: Show all rows of usage and price data before join ---
     # (df_prices is not available yet, so only print df_power here)
-    print("\n--- DEBUG: df_power (usage) ---")
-    print(df_power.head(20))
+    #print("\n--- DEBUG: df_power (usage) ---")
+    #print(df_power.head(20))
     
     # Ensure both are timezone-aware and floored to hour in Europe/Copenhagen, then create naive local time for join
     df_power['time'] = pd.to_datetime(df_power['time'])
-    print("\n--- DEBUG: df_power (usage) --- after datetime conversion ---")
-    print(df_power.head(20))
+    #print("\n--- DEBUG: df_power (usage) --- after datetime conversion ---")
+    #print(df_power.head(20))
     # Remove all data for the DST transition hour (last Sunday of October, 02:00-02:59) for any year
     def is_last_sunday_of_oct(dt):
         # Accepts both pd.Timestamp and datetime
@@ -213,9 +214,9 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     df_prices = df_prices[df_prices['time_start'].isin(hours_needed)]
     # Add UTC column for merging
     df_prices['time_utc'] = df_prices['time_start'].dt.tz_convert('UTC')
-    print("\n--- DEBUG: df_prices (price) ---")
-    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
-        print(df_prices.head(100))
+    #print("\n--- DEBUG: df_prices (price) ---")
+    #with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+    #    print(df_prices.head(100))
 
     # --- End of price fetching logic ---
     # Comments: Now loads prices from CSV for historical periods, only fetches missing hours from API. This reduces API calls and speeds up app.
@@ -238,18 +239,18 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce')
         df_prices['time_start'] = pd.to_datetime(df_prices['time_start'], errors='coerce', utc=True)
     # Merge power data with prices using UTC time to guarantee a match for every hour
-    print("\n--- DEBUG: Merging on 'time_utc' ---")
+    #print("\n--- DEBUG: Merging on 'time_utc' ---")
     df_merged = pd.merge(df_power, df_prices, left_on='time', right_on='time_start', how='left', suffixes=('', '_price'))
-    print('the merged data looks like this:')
-    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
-        print(df_merged.head(100))
-    print('the merged tables looked like this:')
-    print('df_power:')
-    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
-        print(df_power.head(5))
-    print('df_prices:')
-    with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
-        print(df_prices.head(5))
+    #print('the merged data looks like this:')
+    #with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+    #    print(df_merged.head(100))
+    #print('the merged tables looked like this:')
+   # print('df_power:')
+    #with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+     #   print(df_power.head(5))
+    #print('df_prices:')
+    #with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+    #    print(df_prices.head(5))
     # After merge, drop time_utc columns and keep time in Europe/Copenhagen
     df_merged = df_merged.drop(columns=['time_utc'])
     if 'time_utc_price' in df_merged.columns:
@@ -306,19 +307,19 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
         if 'house_kwh' not in df_result.columns:
             df_result['house_kwh'] = df_result['usage_kwh']
 
-    print(f'\nFetched {len(df_result)} hours of data from {from_date} to {to_date}\n')
-    print(df_result.to_string(index=False))
+    #print(f'\nFetched {len(df_result)} hours of data from {from_date} to {to_date}\n')
+    #print(df_result.to_string(index=False))
     total_usage = df_result['usage_kwh'].sum()
     total_spot = (df_result['usage_kwh'] * df_result['spot_pris']).sum()
     total_tarif = (df_result['usage_kwh'] * df_result['tarif_pris']).sum()
     total_afgift = (df_result['usage_kwh'] * df_result['afgift_pris']).sum()
     total_cost = df_result['total_udgift'].sum()
 
-    print(f'\nTotal usage: {total_usage:.2f} kWh')
-    print(f'Total spot cost: {total_spot:.2f} DKK')
-    print(f'Total tariff cost: {total_tarif:.2f} DKK')
-    print(f'Total afgift (tax): {total_afgift:.2f} DKK')
-    print(f'Total cost (spot + tariff + afgift): {total_cost:.2f} DKK')
+    #print(f'\nTotal usage: {total_usage:.2f} kWh')
+    #print(f'Total spot cost: {total_spot:.2f} DKK')
+    #print(f'Total tariff cost: {total_tarif:.2f} DKK')
+    #print(f'Total afgift (tax): {total_afgift:.2f} DKK')
+    #print(f'Total cost (spot + tariff + afgift): {total_cost:.2f} DKK')
 
     return df_result
 
