@@ -66,7 +66,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.set_page_config(page_title='Power Usage Monitor', layout='wide')
+st.set_page_config(page_title='Elbil strømberegner', layout='wide')
 st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 
 st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark). Beregneren kan bruges til at sammenligne den beregnede udgift til strøm til bilen, sat op i mod den tilbagebetaling clever giver for opladning hjemme, og dermed give en indikation på om det er økonomisk fordelagtigt at lade hjemme eller ej.')
