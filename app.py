@@ -73,7 +73,8 @@ st.markdown(
 st.set_page_config(page_title='Elbil strømberegner', layout='wide')
 st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 
-st.markdown('Overvåg dit husstands strømforbrug og omkostninger. For at få en indikation på, hvad opladning af elbil koster, kan du sætte et kWh threshold for at identificere timer hvor bilen sandsynligvis lader. Data hentes fra Eloverblik API og inkluderer både spotpris og tariffer. Lige nu bruges en Zone DK2 (øst Danmark). Beregneren kan bruges til at sammenligne den beregnede udgift til strøm til bilen, sat op i mod den tilbagebetaling clever giver for opladning hjemme, og dermed give en indikation på om det er økonomisk fordelagtigt at lade hjemme eller ej. ' \
+st.markdown('Det kan være uoverskueligt at vurdere, hvor meget man reelt betaler for sin strøm, når man er Clever kunde. Denne app forsøger at estimere, hvornår elbilen lader op, og dermed hvad prisen du selv betaler for strømmen har været. Det kan herefter sammenlignes, med den refusion man modtager fra Clever.' \
+'Data hentes fra Eloverblik API og inkluderer både spotpris, tariffer og afgifter. Lige nu bruges en Zone DK2 (øst Danmark).' \
 'Klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her. Din token gemmes ikke og bruges kun til denne session')
 
 
