@@ -99,7 +99,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
         # Add 'pris uden clever' calculated field
-        display_table['pris uden clever'] = display_table['Totaludgift inkl. ikke detekteret'] - display_table['KwH Iflg. Clever'] * 0.9 + 70 + display_table['udeladning_cost']
+        display_table['pris uden clever'] = display_table['adjusted_total'] - display_table['clever_kwh'] * 0.9 + 70 + display_table['udeladning_cost']
         display_table = display_table.rename(columns={
             'month': 'Periode',
             'kWh opladet (automatisk detekteret)': 'KWh auto detekteret',
