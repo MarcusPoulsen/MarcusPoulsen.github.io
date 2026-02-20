@@ -107,7 +107,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             except Exception:
                 return 0.9
 
-        clever_multiplier = display_table['Periode'].apply(get_clever_multiplier)
+        clever_multiplier = display_table['month'].apply(get_clever_multiplier)
         display_table['total_udgift_uden_clever_abbonemnt'] = display_table['adjusted_total'] + 70 - display_table['clever_kwh'] * clever_multiplier + display_table['udeladning_cost']
 
 
