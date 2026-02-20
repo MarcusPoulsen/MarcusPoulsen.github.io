@@ -123,7 +123,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             x=display_table['month'],
             y=display_table['total_udgift_uden_clever_abbonemnt'],
             name='Uden Clever',
-            marker_color='blue',
+            marker_color='red',
             text=display_table['total_udgift_uden_clever_abbonemnt'].round(0),
             textposition='inside',
         ))
