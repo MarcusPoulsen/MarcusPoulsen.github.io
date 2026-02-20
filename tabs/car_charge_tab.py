@@ -116,6 +116,33 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         clever_multiplier = display_table['month'].apply(get_clever_multiplier)
         display_table['total_udgift_uden_clever_abbonemnt'] = display_table['adjusted_total'] + 70 - display_table['clever_kwh'] * clever_multiplier + display_table['udeladning_cost']
 
+        # --- New bar chart: Price with and without Clever ---
+        st.markdown('### Månedlig udgift: Med og uden Clever')
+        fig_with_without = go.Figure()
+        fig_with_without.add_trace(go.Bar(
+            x=display_table['month'],
+            y=display_table['total_udgift_ved_clever_abbonemnt'],
+            name='Med Clever',
+            marker_color='blue',
+            text=display_table['total_udgift_ved_clever_abbonemnt'].round(0),
+            textposition='inside',
+        ))
+        fig_with_without.add_trace(go.Bar(
+            x=display_table['month'],
+            y=display_table['total_udgift_uden_clever_abbonemnt'],
+            name='Uden Clever',
+            marker_color='orange',
+            text=display_table['total_udgift_uden_clever_abbonemnt'].round(0),
+            textposition='inside',
+        ))
+        fig_with_without.update_layout(
+            barmode='group',
+            title='Månedlig totaludgift med og uden Clever',
+            xaxis_title='Måned',
+            yaxis_title='DKK',
+            height=400
+        )
+        st.plotly_chart(fig_with_without, use_container_width=True, key='with_without_clever_bar_chart')
 
         display_table = display_table.rename(columns={
             'month': 'Periode',
