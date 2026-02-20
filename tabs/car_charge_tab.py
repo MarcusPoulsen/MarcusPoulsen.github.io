@@ -164,7 +164,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'udeladning_cost',
             ],
             hide_index=True,
-            width='stretch',
+            width=900,
             key='monthly_car_editor'
         )
         # Calculate net_price_total from the visible/edited table and show the metric here
