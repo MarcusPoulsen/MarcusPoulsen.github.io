@@ -159,7 +159,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'Clever fastpris': st.column_config.NumberColumn('Clever\nfastpris'),
                 'Total udgift med Clever': st.column_config.NumberColumn('Total\nudgift\nmed\nClever'),
                 'udeladning_kwh': st.column_config.NumberColumn('Udeladning\nKWh', min_value=0.0, step=0.01, format='%.2f'),
-                'udeladning_cost': st.column_config.NumberColumn('Udeladning\udgift'),
+                'udeladning_cost': st.column_config.NumberColumn('Udeladning\nudgift'),
                 'total_udgift_uden_Clever': st.column_config.NumberColumn('Total\nudgift\nuden\nClever'),
             },
             disabled=[
