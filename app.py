@@ -179,12 +179,10 @@ if not st.session_state['df_data'].empty:
 
     st.markdown(f"## Vælg mellem forskellige visninger og analyser af dataen nedenfor")
     # Tabs for different views (Car Charge first)
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(['🚗 Clever refusion vs pris på opladning', '📈 Strømforbrug figurer', '📊 Data Deep dive', '📅 Daily Summary', '⏰ Hourly Stats'])
+    tab1, tab3, tab4, tab5 = st.tabs(['🚗 Clever refusion vs pris på opladning', '📊 Data Deep dive', '📅 Daily Summary', '⏰ Hourly Stats'])
 
     with tab1:
         render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris)
-    with tab2:
-        render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
     with tab3:
         render_data_table_tab(df, from_date, to_date, _filter_df_by_view_range)
     with tab4:
