@@ -87,6 +87,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         ))
         fig_car.update_layout(
             barmode='group',
+            title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet. Du får det bedste resultat ved at udfylde tabellen nedenfor med de korrekte kWh for hver måned',
             xaxis_title='Måned',
             yaxis_title='DKK',
             height=450
