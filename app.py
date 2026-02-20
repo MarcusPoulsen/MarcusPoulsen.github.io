@@ -51,7 +51,7 @@ def _filter_df_by_view_range(df, view_range):
     except Exception:
         return df
 
-# Reduce top space above title using custom CSS
+# Reduce top space above title and vertically center the button using custom CSS
 st.markdown(
     """
     <style>
@@ -61,6 +61,10 @@ st.markdown(
         }
         /* Remove Streamlit default header space */
         header {margin-bottom: 0rem !important;}
+        /* Vertically center the button in the last column */
+        div[data-testid="column"]:last-child button {
+            margin-top: 16px !important;
+        }
     </style>
     """,
     unsafe_allow_html=True
