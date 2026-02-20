@@ -75,7 +75,7 @@ st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 
 st.markdown('Det kan være uoverskueligt at vurdere, hvor meget man reelt betaler for sin strøm, når man hjemmeoplader sin elbil. Denne app forsøger at estimere, hvornår elbilen lader op, og dermed hvad prisen du selv betaler for strømmen har været. Det kan herefter sammenlignes, med den refusion man modtager fra fx Clever.' \
 'Data hentes fra Eloverblik API og inkluderer både spotpris, tariffer og afgifter. For at finde de tidspunkter Elbilen lader op, antager vi at et forbrug over fx 5kwh på en time må indikere at elbilen lader op. Denne antagelse kan justeres.' \
-' Klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her. Din token gemmes ikke og bruges kun til denne session')
+' Klik her for at hente "API token": https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her. Din token gemmes ikke og bruges kun til denne session')
 
 
 # Date range defaults
