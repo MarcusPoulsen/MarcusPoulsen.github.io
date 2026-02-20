@@ -89,7 +89,7 @@ default_from = today - timedelta(days=30)
 
 
 # Five columns: token, periode, elbil oplader flag, max opladningshastighed, beregn knap
-col_token, col_date, col_charge, col_max, col_btn = st.columns(5)
+col_token, col_date, col_charge, col_max, col_udelad_pris, col_btn = st.columns(6)
 with col_token:
     token = st.text_input(
         'Eloverblik token',
@@ -120,6 +120,14 @@ with col_max:
         step=0.1,
         help='Maksimalt antal kWh bilen kan tage per time (fx 11)'
     )
+with col_udelad_pris:
+    udeladning_pris = st.number_input(
+        'Antaget udeladning pris (DKK)',
+        min_value=0.0,
+        value=3.5,
+        step=0.1,
+        help='Indtast den pris du antager for udeladning (fx 3,5 DKK pr. kWh)'
+    )
 with col_btn:
     fetch_btn = st.button('📊 Hent data og beregn udgifter', type='primary')
 
@@ -133,6 +141,7 @@ if fetch_btn:
         if df is not None and not df.empty:
             st.session_state['df_data'] = df
             st.session_state['last_token'] = token
+            st.session_state['udeladning_pris'] = udeladning_pris
             st.success('✅ Data fetched and cached for this session')
         else:
             st.warning('No data fetched')
@@ -174,7 +183,7 @@ if not st.session_state['df_data'].empty:
     tab1, tab2, tab3, tab4, tab5 = st.tabs(['🚗 Clever refusion vs pris på opladning', '📈 Strømforbrug figurer', '📊 Data Deep dive', '📅 Daily Summary', '⏰ Hourly Stats'])
 
     with tab1:
-        render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range)
+        render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris)
     with tab2:
         render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
     with tab3:

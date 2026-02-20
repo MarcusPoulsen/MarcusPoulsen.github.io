@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
 
-def render(df, from_date, to_date, _filter_df_by_view_range):
+def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
 
     st.markdown('## 🚗 Clever refusion vs pris på opladning')
     # Removed date filter, use full range
@@ -98,7 +98,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table = merged.copy()
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
         display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
-        display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
+        display_table['udeladning_cost'] = display_table['udeladning_kwh'] * udeladning_pris
         display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
         display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
@@ -177,7 +177,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Clever fastpris',
         ]
         st.markdown('#### Månedlig udgiftsoversigt (detaljeret tabel)')
-        st.markdown('Du kan redigere i kolonnerne "KwH Iflg. Clever" og "Udeladning KWh" for at få et endnu bedre estimat')
+        st.markdown('Du kan redigere i kolonnerne "KwH Iflg. Clever" og "Udeladning KWh" for at få et endnu bedre estimat.')
         edited = st.data_editor(
             display_table[display_columns],
             column_config={
