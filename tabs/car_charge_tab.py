@@ -22,10 +22,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     net_value = 'N/A'
     # Try to get from merged table if it exists (after monthly_table is created)
 
-
+    st.markdown('##### Hjemmeopladning af elbil - estimeret forbrug og udgift')
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
-    st.markdown('##### Hjemmeopladning af elbil - estimeret forbrug og udgift')
     with c1:
         st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
     with c2:
