@@ -98,7 +98,17 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
-        display_table['total_udgift_uden_clever_abbonemnt'] = display_table['adjusted_total'] + 70 - display_table['clever_kwh'] * 0.9 + display_table['udeladning_cost']
+        # Afgift er 0,9 kr med moms i 2025 og tidligere, i 2026 er den næsten nul, og du får ingen refusion
+        def get_clever_multiplier(month_str):
+            # month_str is in format 'MM-YY'
+            try:
+                year = int('20' + month_str.split('-')[1])
+                return 0.9 if year < 2026 else 0.0
+            except Exception:
+                return 0.9
+
+        clever_multiplier = display_table['Periode'].apply(get_clever_multiplier)
+        display_table['total_udgift_uden_clever_abbonemnt'] = display_table['adjusted_total'] + 70 - display_table['clever_kwh'] * clever_multiplier + display_table['udeladning_cost']
 
 
         display_table = display_table.rename(columns={
