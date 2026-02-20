@@ -72,12 +72,16 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             y=monthly_agg['adjusted_total'],
             name='Opladningspris (DKK, justeret)',
             marker_color='red',
+            text=monthly_agg['adjusted_total'].round(0),
+            textposition='inside',
         ))
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
             name='Clever refusion (DKK)',
             marker_color='green',
+            text=monthly_agg['reimbursed'].round(0),
+            textposition='inside',
         ))
         fig_car.update_layout(
             barmode='group',
