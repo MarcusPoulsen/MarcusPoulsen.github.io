@@ -72,7 +72,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['adjusted_total'],
-            name='Opladningspris (DKK, justeret)',
+            name='Estimeret opladningspris',
             marker_color='red',
             text=monthly_agg['adjusted_total'].round(0),
             textposition='inside',
@@ -88,7 +88,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         fig_car.update_layout(
             barmode='group',
             title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet. Du får det bedste resultat ved at udfylde tabellen nedenfor med input fra din Clever app',
-            xaxis_title='Måned',
+            xaxis_title='Periode',
             yaxis_title='DKK',
             height=450
         )
