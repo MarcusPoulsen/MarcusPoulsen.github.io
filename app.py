@@ -87,7 +87,7 @@ col_token, col_date, col_charge, col_max, col_btn = st.columns(5)
 with col_token:
     token = st.text_input(
         'Eloverblik token',
-        placeholder='Indtast din refresh token',
+        placeholder='Indtast din token fra eloverblik',
         type='password',
         help='Klik her for at hente en: https://www.eloverblik.dk -> Log ind -> API Adgang -> Opret token -> indtast token her. Din token gemmes ikke og bruges kun til denne session.'
     )
