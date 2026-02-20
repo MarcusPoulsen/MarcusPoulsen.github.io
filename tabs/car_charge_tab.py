@@ -176,7 +176,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         # Update session state using renamed columns
         for i, r in edited.iterrows():
             m = r['Periode']
-            st.session_state[f'clever_kwh_{m}'] = r['KwH Ifølge Clever']
+            st.session_state[f'clever_kwh_{m}'] = r['KwH Iflg. Clever']
             st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
         # Export CSV with new column order and names
         csv = edited[[
