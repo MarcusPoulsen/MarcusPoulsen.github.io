@@ -98,17 +98,39 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
-        # (Do not show the net_price metric here; only show after the data_editor below)
-        # Move input fields to the bottom table (data_editor)
-        display_table = merged.copy()
-        display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
-        display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
-        display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
-        display_table['adjusted_total'] = display_table['total_price'] + display_table['korrektion_cost']
-        display_table['reimbursed'] = display_table['clever_kwh'] * display_table['clever_rate']
-        display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
-        display_table['clever_abbonnemnt'] = 799.0
-        display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
+        # Rearranged and renamed columns as requested
+        display_table = display_table[[
+            'month',
+            'kWh opladet (automatisk detekteret)',
+            'clever_kwh',
+            'korrektion_kwh_clever',
+            'average_price',
+            'clever_rate',
+            'total_price',
+            'korrektion_cost',
+            'adjusted_total',
+            'reimbursed',
+            'net_price',
+            'clever_abbonnemnt',
+            'total_udgift_ved_clever_abbonemnt',
+            'udeladning_kwh',
+            'udeladning_cost',
+        ]]
+        display_table = display_table.rename(columns={
+            'month': 'Periode',
+            'kWh opladet (automatisk detekteret)': 'KWh opladet automatisk detekteret',
+            'clever_kwh': 'KwH Ifølge Clever',
+            'korrektion_kwh_clever': 'Ekstra Kwh (ikke detekteret)',
+            'average_price': 'Gennemsnits opladningspris',
+            'clever_rate': 'Clever tilbagebetaling pr kwh',
+            'total_price': 'Total opladningspris',
+            'korrektion_cost': 'Ikke detekteret kwh total pris',
+            'adjusted_total': 'Totalpris inklusiv ikke detekteret',
+            'reimbursed': 'Tilbagebetalt fra Clever',
+            'net_price': 'Netto strøm pris',
+            'clever_abbonnemnt': 'Clever',
+            'total_udgift_ved_clever_abbonemnt': 'Total udgift med Clever',
+        })
         # --- Bar chart logic ---
         monthly_agg = merged.copy()
         fig_car = go.Figure()
@@ -128,11 +150,24 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         edited = st.data_editor(
             display_table,
             column_config={
-                'clever_rate': st.column_config.NumberColumn('Clever sats (DKK/kWh)', min_value=0.0, step=0.01, format='%.2f', disabled=True),
-                'clever_kwh': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
+                'Clever tilbagebetaling pr kwh': st.column_config.NumberColumn('Clever tilbagebetaling pr kWh', min_value=0.0, step=0.01, format='%.2f', disabled=True),
+                'KwH Ifølge Clever': st.column_config.NumberColumn('kWh ifølge Clever', min_value=0.0, step=0.01, format='%.2f'),
                 'udeladning_kwh': st.column_config.NumberColumn('Udeladning kWh', min_value=0.0, step=0.01, format='%.2f'),
             },
-            disabled=['month', 'kWh opladet (automatisk detekteret)', 'average_price', 'total_price', 'korrektion_kwh_clever', 'korrektion_cost', 'adjusted_total', 'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt', 'udeladning_cost'],
+            disabled=[
+                'Periode',
+                'KWh opladet automatisk detekteret',
+                'Gennemsnits opladningspris',
+                'Total opladningspris',
+                'Ekstra Kwh (ikke detekteret)',
+                'Ikke detekteret kwh total pris',
+                'Totalpris inklusiv ikke detekteret',
+                'Tilbagebetalt fra Clever',
+                'Netto strøm pris',
+                'Clever',
+                'Total udgift med Clever',
+                'udeladning_cost',
+            ],
             hide_index=True,
             width='stretch',
             key='monthly_car_editor'
@@ -147,15 +182,28 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             net_value = f"{net_price_total:.2f} DKK"
         with c4:
             st.metric(net_label, net_value)
+        # Update session state using renamed columns
         for i, r in edited.iterrows():
-            m = r['month']
-            st.session_state[f'clever_kwh_{m}'] = r['clever_kwh']
+            m = r['Periode']
+            st.session_state[f'clever_kwh_{m}'] = r['KwH Ifølge Clever']
             st.session_state[f'udeladning_kwh_{m}'] = r['udeladning_kwh']
+        # Export CSV with new column order and names
         csv = edited[[
-            'month', 'kWh opladet (automatisk detekteret)', 'clever_kwh', 'korrektion_kwh_clever',
-            'average_price', 'total_price', 'korrektion_cost', 'adjusted_total',
-            'reimbursed', 'net_price', 'clever_abbonnemnt', 'total_udgift_ved_clever_abbonemnt',
-            'udeladning_kwh', 'udeladning_cost'
+            'Periode',
+            'KWh opladet automatisk detekteret',
+            'KwH Ifølge Clever',
+            'Ekstra Kwh (ikke detekteret)',
+            'Gennemsnits opladningspris',
+            'Clever tilbagebetaling pr kwh',
+            'Total opladningspris',
+            'Ikke detekteret kwh total pris',
+            'Totalpris inklusiv ikke detekteret',
+            'Tilbagebetalt fra Clever',
+            'Netto strøm pris',
+            'Clever',
+            'Total udgift med Clever',
+            'udeladning_kwh',
+            'udeladning_cost',
         ]].to_csv(index=False)
         st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
     else:
