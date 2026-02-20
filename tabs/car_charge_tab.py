@@ -168,8 +168,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             key='monthly_car_editor'
         )
         # Calculate net_price_total from the visible/edited table and show the metric here
-        if 'net_price' in edited.columns:
-            net_price_total = edited['net_price'].sum()
+        if 'Netto strøm pris' in edited.columns:
+            net_price_total = edited['Netto strøm pris'].sum()
             if net_price_total < 0:
                 net_label = 'Clever har tilbagebetalt dig mere end du har betalt for din strøm til bilen'
             else:
