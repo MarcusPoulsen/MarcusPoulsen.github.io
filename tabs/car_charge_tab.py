@@ -64,7 +64,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         merged['korrektion_cost'] = merged['korrektion_kwh_clever'] * merged['average_price']
         merged['adjusted_total'] = merged['total_price'] + merged['korrektion_cost']
         merged['reimbursed'] = merged['clever_kwh'] * merged['clever_rate']
-        # --- Bar chart logic ---
+        # --- Bar chart logic (single instance) ---
         monthly_agg = merged.copy()
         fig_car = go.Figure()
         fig_car.add_trace(go.Bar(
@@ -87,8 +87,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             height=450
         )
         st.plotly_chart(fig_car, width='stretch', key='car_charge_bar_chart')
-        # --- End bar chart logic ---
-        # Move input fields to the bottom table (data_editor)
+
+        # --- Prepare display table (single instance) ---
         display_table = merged.copy()
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
         display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
@@ -98,24 +98,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
-        # Rearranged and renamed columns as requested
-        display_table = display_table[[
-            'month',
-            'kWh opladet (automatisk detekteret)',
-            'clever_kwh',
-            'korrektion_kwh_clever',
-            'average_price',
-            'clever_rate',
-            'total_price',
-            'korrektion_cost',
-            'adjusted_total',
-            'reimbursed',
-            'net_price',
-            'clever_abbonnemnt',
-            'total_udgift_ved_clever_abbonemnt',
-            'udeladning_kwh',
-            'udeladning_cost',
-        ]]
         display_table = display_table.rename(columns={
             'month': 'Periode',
             'kWh opladet (automatisk detekteret)': 'KWh opladet automatisk detekteret',
@@ -131,23 +113,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'clever_abbonnemnt': 'Clever',
             'total_udgift_ved_clever_abbonemnt': 'Total udgift med Clever',
         })
-        # --- Bar chart logic ---
-        monthly_agg = merged.copy()
-        fig_car = go.Figure()
-        fig_car.add_trace(go.Bar(
-            x=monthly_agg['month'],
-            y=monthly_agg['adjusted_total'],
-            name='Opladningspris (DKK, justeret)',
-            marker_color='green',
-        ))
-        fig_car.add_trace(go.Bar(
-            x=monthly_agg['month'],
-            y=monthly_agg['reimbursed'],
-            name='Clever refusion (DKK)',
-            marker_color='blue',
-        ))
-        # --- End bar chart logic ---
-        # Ensure displayed table uses the same columns and order as the CSV
         display_columns = [
             'Periode',
             'KWh opladet automatisk detekteret',
