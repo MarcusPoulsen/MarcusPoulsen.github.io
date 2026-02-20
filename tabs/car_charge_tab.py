@@ -72,7 +72,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['adjusted_total'],
-            name='Estimeret opladningspris',
+            name='Estimeret opladningspris (DKK)',
             marker_color='red',
             text=monthly_agg['adjusted_total'].round(0),
             textposition='inside',
