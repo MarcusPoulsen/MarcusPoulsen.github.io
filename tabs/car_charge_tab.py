@@ -23,9 +23,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     # Try to get from merged table if it exists (after monthly_table is created)
 
     st.markdown('##### Hjemmeopladning af elbil - estimeret forbrug og udgift')
-    st.markdown(
-        'Indtast dine faktiske Clever kWh for hver måned (fra Clever appen) i tabellen nedenfor. Hvis du har udeladning, kan du også indtaste det. Tabellen beregner automatisk korrektioner og viser din samlede udgift med og uden Clever-abonnement. Jo mere præcise dine indtastninger er, jo bedre bliver beregningen.'
-    )
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -180,6 +177,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Clever fastpris',
         ]
         st.markdown('#### Månedlig udgiftsoversigt (detaljeret tabel)')
+        st.markdown('Du kan redigere i kolonnerne "KwH Iflg. Clever" og "Udeladning KWh" for at få et endnu bedre estimat')
         edited = st.data_editor(
             display_table[display_columns],
             column_config={
