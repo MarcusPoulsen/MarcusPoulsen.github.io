@@ -87,7 +87,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         ))
         fig_car.update_layout(
             barmode='group',
-            title='Månedlig opladningspris og Clever refusion',
             xaxis_title='Måned',
             yaxis_title='DKK',
             height=450
