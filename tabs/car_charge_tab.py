@@ -93,6 +93,24 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
         display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
         display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
+        # Ensure displayed table uses the same columns and order as the CSV
+        display_columns = [
+            'Periode',
+            'KWh opladet automatisk detekteret',
+            'KwH Ifølge Clever',
+            'Ekstra Kwh (ikke detekteret)',
+            'Gennemsnits opladningspris',
+            'Clever tilbagebetaling pr kwh',
+            'Total opladningspris',
+            'Ikke detekteret kwh total pris',
+            'Totalpris inklusiv ikke detekteret',
+            'Tilbagebetalt fra Clever',
+            'Netto strøm pris',
+            'Clever',
+            'Total udgift med Clever',
+            'udeladning_kwh',
+            'udeladning_cost',
+        ]
         edited = st.data_editor(
             display_table[display_columns],
             column_config={

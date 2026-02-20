@@ -1,2 +1,2 @@
 
-1 warning in 25.28s
+1 warning in 23.01s
