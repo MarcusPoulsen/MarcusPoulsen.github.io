@@ -165,6 +165,7 @@ if not st.session_state['df_data'].empty:
     
     st.divider()
 
+    st.markdown(f"#### Dyk ned i data og figurer for perioden {from_date} til {to_date}")
     # Tabs for different views (Car Charge first)
     tab1, tab2, tab3, tab4, tab5 = st.tabs(['🚗 Clever bil opladning', '📈 Strømforbrug figurer', '📊 Data Deep dive', '📅 Daily Summary', '⏰ Hourly Stats'])
 
