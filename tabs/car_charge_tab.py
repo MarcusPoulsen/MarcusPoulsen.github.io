@@ -93,7 +93,22 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['korrektion_kwh_clever'] = display_table['clever_kwh'] - display_table['kWh opladet (automatisk detekteret)']
         display_table['korrektion_cost'] = display_table['korrektion_kwh_clever'] * display_table['average_price']
         display_table['udeladning_cost'] = display_table['udeladning_kwh'] * 3.5
-        # Ensure displayed table uses the same columns and order as the CSV
+        # Rename columns before subsetting
+        display_table = display_table.rename(columns={
+            'month': 'Periode',
+            'kWh opladet (automatisk detekteret)': 'KWh opladet automatisk detekteret',
+            'clever_kwh': 'KwH Ifølge Clever',
+            'korrektion_kwh_clever': 'Ekstra Kwh (ikke detekteret)',
+            'average_price': 'Gennemsnits opladningspris',
+            'clever_rate': 'Clever tilbagebetaling pr kwh',
+            'total_price': 'Total opladningspris',
+            'korrektion_cost': 'Ikke detekteret kwh total pris',
+            'adjusted_total': 'Totalpris inklusiv ikke detekteret',
+            'reimbursed': 'Tilbagebetalt fra Clever',
+            'net_price': 'Netto strøm pris',
+            'clever_abbonnemnt': 'Clever',
+            'total_udgift_ved_clever_abbonemnt': 'Total udgift med Clever',
+        })
         display_columns = [
             'Periode',
             'KWh opladet automatisk detekteret',
