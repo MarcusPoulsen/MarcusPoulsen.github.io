@@ -71,13 +71,13 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             x=monthly_agg['month'],
             y=monthly_agg['adjusted_total'],
             name='Opladningspris (DKK, justeret)',
-            marker_color='green',
+            marker_color='red',
         ))
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
             name='Clever refusion (DKK)',
-            marker_color='blue',
+            marker_color='green',
         ))
         fig_car.update_layout(
             barmode='group',
@@ -98,6 +98,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         display_table['net_price'] = display_table['adjusted_total'] - display_table['reimbursed']
         display_table['clever_abbonnemnt'] = 799.0
         display_table['total_udgift_ved_clever_abbonemnt'] = display_table['net_price'] + display_table['clever_abbonnemnt']
+        # Add 'pris uden clever' calculated field
+        display_table['pris uden clever'] = display_table['Totaludgift inkl. ikke detekteret'] - display_table['KwH Iflg. Clever'] * 0.9 + 70 + display_table['udeladning_cost']
         display_table = display_table.rename(columns={
             'month': 'Periode',
             'kWh opladet (automatisk detekteret)': 'KWh auto detekteret',
@@ -125,6 +127,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Netto strøm pris',
             'Clever fastpris',
             'Total udgift med Clever',
+            'pris uden clever',
             'udeladning_kwh',
             'udeladning_cost',
         ]
@@ -143,6 +146,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'Netto strøm pris': st.column_config.NumberColumn('Netto\nstrøm\npris'),
                 'Clever fastpris': st.column_config.NumberColumn('Clever\nfastpris'),
                 'Total udgift med Clever': st.column_config.NumberColumn('Total\nudgift\nmed\nClever'),
+                'pris uden clever': st.column_config.NumberColumn('Pris\nuden\nClever'),
                 'udeladning_kwh': st.column_config.NumberColumn('Udeladning\nKWh', min_value=0.0, step=0.01, format='%.2f'),
                 'udeladning_cost': st.column_config.NumberColumn('Udeladning\nkost'),
             },
@@ -157,6 +161,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 'Netto strøm pris',
                 'Clever fastpris',
                 'Total udgift med Clever',
+                'pris uden clever',
                 'udeladning_cost',
             ],
             hide_index=True,
@@ -192,6 +197,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             'Netto strøm pris',
             'Clever fastpris',
             'Total udgift med Clever',
+            'pris uden clever',
             'udeladning_kwh',
             'udeladning_cost',
         ]].to_csv(index=False)
