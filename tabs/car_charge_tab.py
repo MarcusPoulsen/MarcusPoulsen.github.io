@@ -4,8 +4,8 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 def render(df, from_date, to_date, _filter_df_by_view_range):
-    view_range = st.date_input('Vis periode (filter)', value=(from_date, to_date), key='filter_tab1')
-    df_tab = _filter_df_by_view_range(df, view_range)
+    # Removed date filter, use full range
+    df_tab = df.copy()
 
     df_car = df_tab.copy()
     if 'car_kwh' not in df_car.columns:
