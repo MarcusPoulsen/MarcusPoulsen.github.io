@@ -59,8 +59,7 @@ import pandas as pd
 result_df = pd.DataFrame({
 	"Måned": month_names,
 	"Km": np.round(np.full(months, km_per_month), 0),
-	"KWh (uden ladetab/sæson)": np.round(np.full(months, base_kwh_per_month), 1),
-	"KWh (inkl. ladetab/sæson)": np.round(monthly_kwh_charged, 1),
+	"KWh opladet": np.round(monthly_kwh_charged, 1),
 	"Hjemmeopladning (kWh)": np.round(monthly_kwh_home, 1),
 	"Udeopladning (kWh)": np.round(monthly_kwh_ude, 1),
 	"Hjemmeopladningsudgift (DKK)": np.round(monthly_cost_home, 0),
