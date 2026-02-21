@@ -41,7 +41,10 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	df = st.session_state['df_data']
 	from_date = df['time'].dt.date.min()
 	to_date = df['time'].dt.date.max()
-	
+
+	st.markdown("### Grafer")
+	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
+	st.divider()
 	st.markdown("### Data Deep dive")
 	render_data_table_tab(df, from_date, to_date, _filter_df_by_view_range)
 	st.divider()
@@ -50,8 +53,5 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	st.divider()
 	st.markdown("### Hourly Stats")
 	render_hourly_stats_tab(df, from_date, to_date, _filter_df_by_view_range)
-	st.divider()
-	st.markdown("### Charts")
-	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
 else:
 	st.warning("Ingen data fundet. Gå til forsiden og hent data først.")
