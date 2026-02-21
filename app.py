@@ -135,7 +135,7 @@ if fetch_btn:
             st.session_state['df_data'] = df
             st.session_state['last_token'] = token
             st.session_state['udeladning_pris'] = udeladning_pris
-            st.success('✅ Data hentet og gemt til denne session')
+            st.success('✅ Data hentet og gemt til denne session. Dyk ned i dit elforbrug ved at vælge en af siderne nedenfor.')
         else:
             st.warning('Beklager, der er en fejl i data indhentning')
 
@@ -146,8 +146,14 @@ if 'df_data' not in st.session_state:
 if 'last_token' not in st.session_state:
     st.session_state['last_token'] = None
 
+
 # Render results if we have cached data
 if not st.session_state['df_data'].empty:
+    st.markdown("### Dyk ned i elforbruget for din elbil eller hele din hustand, vælg en side herunder")
+    st.page_link("pages/1_elbil_opladning.py", label="Gå til elbil opladning analyse", icon="🚗")
+    st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til husstands el-forbrug analyse", icon="🏠")
+
+
     df = st.session_state['df_data']
     # Ensure afgift is included in per-kWh total price used across charts/tables
     df['spot_pris'] = df.get('spot_pris', pd.Series(0.0))
@@ -169,8 +175,3 @@ if not st.session_state['df_data'].empty:
     with col5:
         st.metric('Gennemsnitlig totalpris for hele perioden', f"{df['total_pris_per_kwh'].mean():.3f} DKK/kWh")
     
-    st.divider()
-
-    st.markdown("### Dyk ned i elforbruget for din elbil eller hele din hustand, vælg en side herunder")
-    st.page_link("pages/1_elbil_opladning.py", label="Gå til elbil opladning analyse", icon="🚗")
-    st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til husstands el-forbrug analyse", icon="🏠")
