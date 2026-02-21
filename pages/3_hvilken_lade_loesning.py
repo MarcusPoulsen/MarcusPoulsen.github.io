@@ -29,11 +29,13 @@ monthly_kwh_charged = monthly_kwh * (1 + ladetab_pct / 100)
 monthly_kwh_home = monthly_kwh_charged * (hjemme_pct / 100)
 monthly_kwh_ude = monthly_kwh_charged * (1 - hjemme_pct / 100)
 
-# Antaget pris pr kWh
-pris_kwh = st.number_input("Antaget pris pr kWh (DKK)", min_value=0.0, value=1.0, step=0.01)
 
-monthly_cost_home = monthly_kwh_home * pris_kwh
-monthly_cost_ude = monthly_kwh_ude * pris_kwh
+# Separate prices for home and away charging
+hjemme_pris_kwh = st.number_input("Hjemmeladning pris pr kWh (DKK)", min_value=0.0, value=1.0, step=0.01)
+ude_pris_kwh = st.number_input("Udeladning pris pr kWh (DKK)", min_value=0.0, value=2.5, step=0.01)
+
+monthly_cost_home = monthly_kwh_home * hjemme_pris_kwh
+monthly_cost_ude = monthly_kwh_ude * ude_pris_kwh
 total_cost = monthly_cost_home.sum() + monthly_cost_ude.sum()
 
 st.markdown("### Resultat")
