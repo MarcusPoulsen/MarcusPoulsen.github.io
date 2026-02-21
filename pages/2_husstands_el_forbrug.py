@@ -66,7 +66,7 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 			api_url = "https://router.huggingface.co/completions"
 			headers = {"Authorization": f"Bearer {hf_token}", "Content-Type": "application/json"}
 			payload = {
-				"model": "mistralai/Mistral-7B-Instruct-v0.2",
+				"model": "meta-llama/Llama-2-7b-chat-hf",
 				"messages": [
 					{"role": "system", "content": "Du er en hjælpsom energirådgiver."},
 					{"role": "user", "content": prompt}
