@@ -4,8 +4,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 def render(df, from_date, to_date, _filter_df_by_view_range):
-    view_range = st.date_input('Vælg periode', value=(from_date, to_date), key='filter_tab_charts')
-    df_tab = _filter_df_by_view_range(df, view_range)
+    df_tab = df.copy()
 
     # Månedlig aggregering
     df_tab['month'] = df_tab['time'].dt.to_period('M')
