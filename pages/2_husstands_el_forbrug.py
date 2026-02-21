@@ -67,7 +67,7 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	if avg_price:
 		summary += f"- Gennemsnitlig pris: **{avg_price:.2f} kr./kWh**\n"
 	# Describe user's data
-	summary += f"\nDu bruger i gns **{monthly_usage:.1f} kWh** pr måned, heraf går der normalt **{monthly_car_kwh:.1f}** til bilen. "
+	summary += f"\nDin hustand bruger i gns **{monthly_usage:.1f} kWh** pr måned, heraf bruger bilen i gennemsnit **{monthly_car_kwh:.1f} kWh** pr måned og huset **{house_kwh / n_months:.1f} kWh** pr måned.\n"
 	summary += f"Dit forbrug til huset koster i gns **{avg_house_price:.2f} kr pr kWh**, og dit forbrug til bilen koster i gns **{avg_car_price:.2f} kr pr kWh**.\n"
 	# Simple advice based on thresholds
 	if avg_price and avg_price > 2.0:
