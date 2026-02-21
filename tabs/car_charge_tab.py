@@ -51,12 +51,22 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         merged = merged.rename(columns={'sats': 'clever_rate'})
         clever_kwh_col = []
         udeladning_kwh_col = []
+        st.markdown('#### Indtast værdier fra Clever app og udeladning for hver måned:')
+        input_cols = st.columns(2)
         for i, r in merged.iterrows():
             m = r['month']
             key_kwh = f'clever_kwh_{m}'
             key_udelad = f'udeladning_kwh_{m}'
-            clever_kwh_col.append(float(st.session_state.get(key_kwh, r['kWh opladet (automatisk detekteret)'])))
-            udeladning_kwh_col.append(float(st.session_state.get(key_udelad, 0.0)))
+            default_kwh = float(st.session_state.get(key_kwh, r['kWh opladet (automatisk detekteret)']))
+            default_udelad = float(st.session_state.get(key_udelad, 0.0))
+            with input_cols[0]:
+                clever_kwh_val = st.number_input(f"KwH iflg. Clever ({m})", min_value=0.0, value=default_kwh, step=0.01, key=key_kwh)
+            with input_cols[1]:
+                udeladning_kwh_val = st.number_input(f"Udeladning kWh ({m})", min_value=0.0, value=default_udelad, step=0.01, key=key_udelad)
+            clever_kwh_col.append(clever_kwh_val)
+            udeladning_kwh_col.append(udeladning_kwh_val)
+            st.session_state[key_kwh] = clever_kwh_val
+            st.session_state[key_udelad] = udeladning_kwh_val
         merged['clever_kwh'] = clever_kwh_col
         merged['udeladning_kwh'] = udeladning_kwh_col
         # Calculate corrections and adjusted total on merged before using in bar chart
@@ -175,13 +185,13 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
             'Clever fastpris',
         ]
         st.markdown('#### Månedlig udgiftsoversigt (detaljeret tabel)')
-        st.markdown('Du kan redigere i kolonnerne "KwH Iflg. Clever" og "Udeladning KWh" for at få et endnu bedre estimat.')
+        st.markdown('Du kan nu indtaste værdierne ovenfor. Tabellen herunder opdateres automatisk.')
         edited = st.data_editor(
             display_table[display_columns],
             column_config={
                 'Periode': st.column_config.TextColumn('Periode'),
                 'KWh auto detekteret': st.column_config.NumberColumn('KWh\nauto\ndetekteret'),
-                'KwH Iflg. Clever': st.column_config.NumberColumn('KwH\nIflg.\nClever', min_value=0.0, step=0.01, format='%.2f'),
+                'KwH Iflg. Clever': st.column_config.NumberColumn('KwH\nIflg.\nClever', disabled=True),
                 'ikke detekteret kWh': st.column_config.NumberColumn('ikke\ndetekteret\nkWh'),
                 'Gns. KWh pris': st.column_config.NumberColumn('Gns.\nKWh\npris'),
                 'Clever tilbagebetaling pr KWh': st.column_config.NumberColumn('Clever\ntilbagebetaling\npr KWh', min_value=0.0, step=0.01, format='%.2f', disabled=True),
@@ -191,13 +201,14 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
                 'Netto strøm pris': st.column_config.NumberColumn('Netto\nstrøm\npris'),
                 'Clever fastpris': st.column_config.NumberColumn('Clever\nfastpris'),
                 'Total udgift med Clever': st.column_config.NumberColumn('Total\nudgift\nmed\nClever'),
-                'udeladning_kwh': st.column_config.NumberColumn('Udeladning\nKWh', min_value=0.0, step=0.01, format='%.2f'),
+                'udeladning_kwh': st.column_config.NumberColumn('Udeladning\nKWh', disabled=True),
                 'udeladning_cost': st.column_config.NumberColumn('Udeladning\nudgift'),
                 'total_udgift_uden_Clever': st.column_config.NumberColumn('Total\nudgift\nuden\nClever'),
             },
             disabled=[
                 'Periode',
                 'KWh auto detekteret',
+                'KwH Iflg. Clever',
                 'Gns. KWh pris',
                 'Total udgift',
                 'ikke detekteret kWh',
@@ -206,6 +217,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
                 'Netto strøm pris',
                 'Clever fastpris',
                 'Total udgift med Clever',
+                'udeladning_kwh',
                 'udeladning_cost',
                 'Total udgift uden Clever',
             ],
