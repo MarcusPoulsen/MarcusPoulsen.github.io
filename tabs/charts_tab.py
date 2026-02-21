@@ -8,7 +8,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     df_tab = _filter_df_by_view_range(df, view_range)
 
     # Månedlig aggregering
-    df_tab['month'] = df_tab['time'].dt.to_period('M').astype(str)
+    df_tab['month'] = df_tab['time'].dt.strftime('%b %Y')
     print(df_tab.head(5))
     # Total pris for bil og resten
     if 'car_kwh' in df_tab.columns and 'car_cost' in df_tab.columns:
