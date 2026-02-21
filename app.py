@@ -65,7 +65,6 @@ st.markdown(
 
 st.set_page_config(page_title='Elbil strømberegner', page_icon='⚡', layout='wide', initial_sidebar_state='collapsed')
 st.sidebar.title('Forside')
-st.sidebar.success("Select a demo above.")
 st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 st.markdown("""
 Det kan være svært at gennemskue, hvad du reelt betaler for strømmen, når du oplader din elbil derhjemme. 
@@ -138,7 +137,7 @@ if fetch_btn:
             st.session_state['udeladning_pris'] = udeladning_pris
             st.success('✅ Data hentet og gemt til denne session')
         else:
-            st.warning('No data fetched')
+            st.warning('Beklager, der er en fejl i data indhentning')
 
 # Persist fetched data across reruns so date filters don't force refetch
 if 'df_data' not in st.session_state:
@@ -172,6 +171,6 @@ if not st.session_state['df_data'].empty:
     
     st.divider()
 
-    st.markdown("### Gå til siden elbil opladning analyse for at se detaljerede analyser og visninger af dine data.")
+    st.markdown("### Dyk ned i elforbruget for din elbil eller hele din hustand, vælg en side herunder")
     st.page_link("pages/1_elbil_opladning.py", label="Gå til elbil opladning analyse", icon="🚗")
     st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til husstands el-forbrug analyse", icon="🏠")
