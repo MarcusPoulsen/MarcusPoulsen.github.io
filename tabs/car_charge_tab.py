@@ -20,7 +20,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     net_value = 'N/A'
     # Try to get from merged table if it exists (after monthly_table is created)
 
-    st.markdown('#### Hjemmeopladning af elbil - amlet oversigt for perioden')
+    st.markdown('#### Hjemmeopladning af elbil - samlet oversigt for perioden')
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
