@@ -58,10 +58,38 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         monthly_avg = df_tab.groupby('month').agg(agg_dict).reset_index()
         monthly_avg['month_str'] = monthly_avg['month'].dt.strftime('%b %Y')
         fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=monthly_avg['month_str'], y=monthly_avg['spot_pris'], mode='lines+markers', name='Gns. spotpris (kr./kWh)', line=dict(color='green')))
-        fig2.add_trace(go.Scatter(x=monthly_avg['month_str'], y=monthly_avg['total_pris_per_kwh'], mode='lines+markers', name='Gns. totalpris (kr./kWh)', line=dict(color='black')))
+        fig2.add_trace(go.Scatter(
+            x=monthly_avg['month_str'],
+            y=monthly_avg['spot_pris'],
+            mode='lines+markers+text',
+            name='Gns. spotpris (kr./kWh)',
+            line=dict(color='green'),
+            text=monthly_avg['spot_pris'].round(2),
+            textposition='top center',
+            textfont=dict(color='green')
+        ))
+        fig2.add_trace(go.Scatter(
+            x=monthly_avg['month_str'],
+            y=monthly_avg['total_pris_per_kwh'],
+            mode='lines+markers+text',
+            name='Gns. totalpris (kr./kWh)',
+            line=dict(color='black'),
+            text=monthly_avg['total_pris_per_kwh'].round(2),
+            textposition='top center',
+            textfont=dict(color='black')
+        ))
         if 'usage_kwh' in monthly_avg.columns:
-            fig2.add_trace(go.Bar(x=monthly_avg['month_str'], y=monthly_avg['usage_kwh'], name='Forbrug (kWh)', marker_color='blue', yaxis='y2', opacity=0.4))
+            fig2.add_trace(go.Bar(
+                x=monthly_avg['month_str'],
+                y=monthly_avg['usage_kwh'],
+                name='Forbrug (kWh)',
+                marker_color='blue',
+                yaxis='y2',
+                opacity=0.4,
+                text=monthly_avg['usage_kwh'].round(0),
+                textposition='inside',
+                textfont=dict(color='white')
+            ))
             fig2.update_layout(
                 yaxis=dict(title='Pris (kr./kWh)'),
                 yaxis2=dict(title='Forbrug (kWh)', overlaying='y', side='right', showgrid=False),
