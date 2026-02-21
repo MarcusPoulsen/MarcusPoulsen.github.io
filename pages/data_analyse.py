@@ -36,9 +36,6 @@ def _filter_df_by_view_range(df, view_range):
 	except Exception:
 		return df
 
-st.markdown("## Data Analyse")
-st.info("Her kan du analysere dine data med tabeller, grafer og statistik.")
-
 if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	df = st.session_state['df_data']
 	from_date = df['time'].dt.date.min()
