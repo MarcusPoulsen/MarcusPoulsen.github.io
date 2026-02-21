@@ -18,7 +18,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         'usage_kwh': 'forbrug (kwh)',
         'spot_pris': 'gennemsnits spotpris betalt',
         'tarif_pris': 'tarif pris',
-        'total_pris_per_kwh': 'gennemsnits strømpris alt inklusiv',
+        'total_pris_per_kwh': 'gennemsnits strømpris alt inklusiv (beregnet)',
         'total_udgift': 'total udgift kr'
     })
     st.dataframe(avg_by_hour, width='stretch')
