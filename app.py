@@ -99,7 +99,7 @@ with col_date:
         to_date = date_range
 with col_charge:
     charge_threshold = st.number_input(
-        'Elbil oplader flag',
+        'Elbil oplader detektering grænse (kWh)',
         min_value=0.0,
         value=5.0,
         step=0.1,
@@ -146,7 +146,7 @@ if 'df_data' not in st.session_state:
 if 'last_token' not in st.session_state:
     st.session_state['last_token'] = None
 
-st.info('Du kan selv udfylde diverse antagelser. Hvis din bil kan oplade med 11 kw, og du ikke har elvarme, er en grænse på 5 kw nok meget god. Den gennemsnitlige KWh pris for udeladning er omkring 3,5 kr, men denne kan også justeres.')
+st.info('Her kan du selv tilpasse de vigtigste antagelser, så beregningerne passer til netop din situation.\n\n\n• "Elbil oplader detektering grænse" angiver, hvor mange kWh der skal bruges på én time, før appen antager, at din elbil lader. Hvis din bil kan oplade med op til 11 kW, og du ikke har elvarme, vil en grænse på 5 kWh ofte være passende.\n\n• "Max opladningshastighed" er det maksimale antal kWh, din bil kan tage pr. time (fx 11 kWh for mange elbiler).\n\n• "Antaget udeladning pris" er den pris, du regner med at betale pr. kWh, hvis du bruger en udeladningsordning (fx Clever). En typisk pris er omkring 3,5 kr/kWh, men du kan justere den efter din egen aftale.\n\nDu kan altid ændre disse værdier, så de matcher dit forbrug og din bil. På den måde får du det mest retvisende billede af dine strømudgifter.')
 
 # Render results if we have cached data
 if not st.session_state['df_data'].empty:
