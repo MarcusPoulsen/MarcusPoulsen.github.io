@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Data Analyse", layout="wide")
 
-st.title("Data Analyse")
+st.title("Elbil opladning Analyse")
 
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
