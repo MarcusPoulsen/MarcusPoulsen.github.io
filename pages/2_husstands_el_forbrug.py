@@ -47,22 +47,17 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	total_usage = df['usage_kwh'].sum()
 	total_cost = df['total_udgift'].sum() if 'total_udgift' in df.columns else (df['usage_kwh'] * df['total_pris_per_kwh']).sum()
 	avg_price = (df['total_pris_per_kwh'].mean() if 'total_pris_per_kwh' in df.columns else None)
-	peak_hour = df['time'].dt.hour[df['spot_pris'].idxmax()] if 'spot_pris' in df.columns else None
 	peak_price = df['spot_pris'].max() if 'spot_pris' in df.columns else None
 	summary = f"**Periode:** {from_date} til {to_date}\n"
 	summary += f"- Samlet elforbrug: **{total_usage:.0f} kWh**\n"
 	summary += f"- Samlet udgift: **{total_cost:.0f} kr.**\n"
 	if avg_price:
 		summary += f"- Gennemsnitlig pris: **{avg_price:.2f} kr./kWh**\n"
-	if peak_hour is not None and peak_price is not None:
-		summary += f"- Dyreste time: **kl. {peak_hour}:00** med **{peak_price:.2f} kr./kWh**\n"
 	# Simple advice based on thresholds
-	if avg_price and avg_price > 3.0:
+	if avg_price and avg_price > 2.0:
 		summary += "💡 Prisen har været høj. Overvej at flytte forbrug til billigere timer, hvis muligt.\n"
 	elif avg_price and avg_price < 1.5:
 		summary += "✅ Du har haft en lav gennemsnitspris. Godt gået!\n"
-	if total_usage > 1000:
-		summary += "⚠️ Dit forbrug er højt. Overvej energibesparende tiltag.\n"
 	st.info(summary)
 	# --- End rule-based summary block ---
 
