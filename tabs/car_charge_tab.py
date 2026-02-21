@@ -94,6 +94,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
             yaxis_title='DKK',
             height=450
         )
+        st.markdown('#### Månedlig opladningspris vs Clever refusion')
         st.plotly_chart(fig_car, width='stretch', key='car_charge_bar_chart')
 
         # --- Prepare display table (single instance) ---
