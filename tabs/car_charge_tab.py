@@ -28,15 +28,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     net_label_top = st.session_state.get('car_charge_net_label', '')
     net_value_top = st.session_state.get('car_charge_net_value', '')
     st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>. {net_label_top} ({net_value_top})</div>", unsafe_allow_html=True)
-    # We'll fill net_price_total after merged is created (monthly table)
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric('Total opladningspris for periode', f"{total_cost:.2f} DKK")
-    with c2:
-        st.metric('Total kwH opladet i periode', f"{total_kwh:.2f} kWh")
-    with c3:
-        st.metric('Gennemsnitlig kWh-pris for bil', f"{avg_price:.2f} DKK/kWh")
-    # c4 will be filled after merged is created
+    # Divider after summary info box
     st.divider()
     # --- Monthly aggregation for new bar chart ---
     monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
@@ -235,8 +227,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
             else:
                 net_label = 'Clever har tilbagebetalt mindre end du har betalt for strøm til bilen'
             net_value = f"{net_price_total:.2f} DKK"
-        with c4:
-            st.metric(net_label, net_value)
         # Store the latest net_label/net_value in session_state for the next rerun
         st.session_state['car_charge_net_label'] = net_label
         st.session_state['car_charge_net_value'] = net_value
@@ -262,8 +252,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         st.download_button('📥 Download monthly CSV', csv, file_name=f'monthly_car_{datetime.now().date()}.csv', mime='text/csv')
     else:
         # If no monthly data, still show the net_price metric (fallback to N/A)
-        with c4:
-            st.metric(net_label, net_value)
         st.session_state['car_charge_net_label'] = net_label
         st.session_state['car_charge_net_value'] = net_value
         st.info('Ingen månedlig opladningsdata i valgt periode')
