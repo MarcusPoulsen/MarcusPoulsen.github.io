@@ -23,8 +23,8 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     })
     st.dataframe(avg_by_hour, width='stretch')
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=avg_by_hour['Hour'], y=avg_by_hour['Avg Usage (kWh)'], name='Avg Usage (kWh)'))
-    fig.update_layout(title='Average Usage by Hour of Day', xaxis_title='Hour', yaxis_title='Avg Usage (kWh)', height=400)
+    fig.add_trace(go.Bar(x=avg_by_hour['time'], y=avg_by_hour['forbrug (kwh)'], name='Forbrug (kwh)'))
+    fig.update_layout(title='Gennemsnitligt forbrug pr. time', xaxis_title='Time', yaxis_title='Forbrug (kwh)', height=400)
     st.plotly_chart(fig, width='stretch')
     st.markdown('**Insights:**')
     if not hourly_stats.empty:
