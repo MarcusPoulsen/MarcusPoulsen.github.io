@@ -17,7 +17,7 @@ ENV/
 .vscode/
 
 # Streamlit secrets
-.secrets.toml
+.streamlit/secrets.toml
 
 # Token files
 *.token
