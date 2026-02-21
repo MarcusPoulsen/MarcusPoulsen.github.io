@@ -89,12 +89,12 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         ))
         fig_car.update_layout(
             barmode='group',
-            title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet. Du får det bedste resultat ved at udfylde tabellen nedenfor med input fra din Clever app',
+            title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet:',
             xaxis_title='Periode',
             yaxis_title='DKK',
             height=450
         )
-        st.markdown('#### Månedlig opladningspris vs Clever refusion')
+        st.markdown('### Månedlig opladningspris vs Clever refusion')
         st.plotly_chart(fig_car, width='stretch', key='car_charge_bar_chart')
 
         # --- Prepare display table (single instance) ---

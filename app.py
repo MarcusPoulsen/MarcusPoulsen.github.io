@@ -146,6 +146,7 @@ if 'df_data' not in st.session_state:
 if 'last_token' not in st.session_state:
     st.session_state['last_token'] = None
 
+st.info('Du kan selv udfylde diverse antagelser. Hvis din bil kan oplade med 11 kw, og du ikke har elvarme, er en grænse på 5 kw nok meget god. Den gennemsnitlige KWh pris for udeladning er omkring 3,5 kr, men denne kan også justeres.')
 
 # Render results if we have cached data
 if not st.session_state['df_data'].empty:
@@ -155,10 +156,5 @@ if not st.session_state['df_data'].empty:
 
 
     df = st.session_state['df_data']
-    # Ensure afgift is included in per-kWh total price used across charts/tables
-    df['spot_pris'] = df.get('spot_pris', pd.Series(0.0))
-    df['tarif_pris'] = df.get('tarif_pris', pd.Series(0.0))
-    df['afgift_pris'] = df.get('afgift_pris', pd.Series(0.0))
-    df['total_pris_per_kwh'] = df['spot_pris'].fillna(0) + df['tarif_pris'].fillna(0) + df['afgift_pris'].fillna(0)
 
     
