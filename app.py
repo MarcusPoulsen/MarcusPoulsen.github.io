@@ -7,13 +7,6 @@ from zoneinfo import ZoneInfo
 import plotly.graph_objects as go
 from fetch_power_data import fetch_power_data
 
-# Import tab modules
-from tabs.car_charge_tab import render as render_car_charge_tab
-from tabs.charts_tab import render as render_charts_tab
-from tabs.data_table_tab import render as render_data_table_tab
-from tabs.daily_summary_tab import render as render_daily_summary_tab
-from tabs.hourly_stats_tab import render as render_hourly_stats_tab
-
 
 def _filter_df_by_view_range(df, view_range):
     """Safely filter `df` by a Streamlit `date_input` value which may be a single
@@ -177,15 +170,5 @@ if not st.session_state['df_data'].empty:
     
     st.divider()
 
-    st.markdown(f"## Vælg mellem forskellige visninger og analyser af dataen nedenfor")
-    # Tabs for different views (Car Charge first)
-    tab1, tab3, tab4, tab5 = st.tabs(['🚗 Clever refusion vs pris på opladning', '📊 Data Deep dive', '📅 Daily Summary', '⏰ Hourly Stats'])
-
-    with tab1:
-        render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris)
-    with tab3:
-        render_data_table_tab(df, from_date, to_date, _filter_df_by_view_range)
-    with tab4:
-        render_daily_summary_tab(df, from_date, to_date, _filter_df_by_view_range)
-    with tab5:
-        render_hourly_stats_tab(df, from_date, to_date, _filter_df_by_view_range)
+    st.markdown("## Gå til siden 'Data Analyse' for at se detaljerede analyser og visninger af dine data.")
+    st.info("Klik på 'Data Analyse' i menuen til venstre for at se tabeller, grafer og statistik.")
