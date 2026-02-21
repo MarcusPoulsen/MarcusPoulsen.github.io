@@ -42,7 +42,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
         # This is the same as the bar chart's 'adjusted_total' if no corrections
         avg_monthly_cost = monthly_car['car_cost'].mean() if not monthly_car.empty else 0.0
-        summary += f"Gennemsnitlig estimeret opladningspris pr måned: <b>{avg_monthly_cost:.0f} kr</b><br>"
+        summary += f"Gennemsnitlig estimeret opladningspris <b>{avg_monthly_cost:.0f} kr /b> pr måned.<<br>"
     if net_label_top:
         summary += f"{net_label_top} (<b>{net_value_top}</b>)<br>"
     summary += "</div>"
