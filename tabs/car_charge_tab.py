@@ -24,7 +24,50 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     total_cost = daily_car['total_charge_cost'].sum()
     avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
     st.markdown(f"#### Hjemmeopladning af elbil - samlet oversigt for perioden")
-    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>.</div>", unsafe_allow_html=True)
+    # Calculate net_label and net_value for the summary text (same as c4 logic)
+    net_label_text = ''
+    net_value_text = ''
+    # Try to get net_price_total from the monthly table if possible
+    # We'll recalculate here for the summary text, but only if monthly_car is not empty
+    if not daily_car.empty:
+        # Try to get from merged table if it exists (after monthly_table is created)
+        # We'll use the same logic as later for c4, but fallback to N/A if not available
+        net_price_total = None
+        if 'monthly_car' in locals() and not monthly_car.empty:
+            # Try to calculate from merged table if possible
+            # This is duplicated from below, but ensures the info is available for the summary
+            monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%y')
+            monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
+            monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
+            monthly_table.columns = ['month', 'kWh opladet (automatisk detekteret)', 'average_price', 'total_price']
+            try:
+                clever_sats_df = pd.read_csv('clever_tilbagebetaling.csv')
+                clever_sats_df['month'] = clever_sats_df['month'].astype(str)
+                merged = pd.merge(monthly_table, clever_sats_df, on='month', how='left')
+                merged['sats'] = merged['sats'].astype(float).fillna(0.0)
+                merged = merged.rename(columns={'sats': 'clever_rate'})
+                clever_kwh_col = []
+                for i, r in merged.iterrows():
+                    m = r['month']
+                    key_kwh = f'clever_kwh_{m}'
+                    clever_kwh_val = float(st.session_state.get(key_kwh, r['kWh opladet (automatisk detekteret)']))
+                    clever_kwh_col.append(clever_kwh_val)
+                merged['clever_kwh'] = clever_kwh_col
+                merged['korrektion_kwh_clever'] = merged['clever_kwh'] - merged['kWh opladet (automatisk detekteret)']
+                merged['korrektion_cost'] = merged['korrektion_kwh_clever'] * merged['average_price']
+                merged['adjusted_total'] = merged['total_price'] + merged['korrektion_cost']
+                merged['reimbursed'] = merged['clever_kwh'] * merged['clever_rate']
+                merged['net_price'] = merged['adjusted_total'] - merged['reimbursed']
+                net_price_total = merged['net_price'].sum()
+                if net_price_total is not None:
+                    if net_price_total < 0:
+                        net_label_text = 'Clever har tilbagebetalt mere end du har betalt for strøm til bilen.'
+                    else:
+                        net_label_text = 'Clever har tilbagebetalt mindre end du har betalt for strøm til bilen.'
+                    net_value_text = f" ({net_price_total:.2f} DKK)"
+            except Exception:
+                pass
+    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>. {net_label_text}{net_value_text}</div>", unsafe_allow_html=True)
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
