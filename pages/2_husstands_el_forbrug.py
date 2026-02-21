@@ -77,7 +77,7 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	st.info(summary)
 	# --- End rule-based summary block ---
 
-	st.markdown("### Grafer")
+	st.markdown("### Månedlige omkostninger og spotpris tendenser")
 	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
 	st.divider()
 	st.markdown("### Data Deep dive")

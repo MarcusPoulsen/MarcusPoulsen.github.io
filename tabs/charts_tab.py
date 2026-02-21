@@ -47,7 +47,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         )
         st.plotly_chart(fig1, use_container_width=True)
 
-    # Månedlig gennemsnitlig spotpris og totalpris
+    # Månedlig gennemsnitlig spotpris og totalpris (Figur 1)
     if 'spot_pris' in df_tab.columns and 'total_pris_per_kwh' in df_tab.columns:
         agg_dict = {
             'spot_pris': 'mean',
@@ -57,8 +57,10 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             agg_dict['usage_kwh'] = 'sum'
         monthly_avg = df_tab.groupby('month').agg(agg_dict).reset_index()
         monthly_avg['month_str'] = monthly_avg['month'].dt.strftime('%b %Y')
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(
+
+        # Figure for prices
+        fig_price = go.Figure()
+        fig_price.add_trace(go.Scatter(
             x=monthly_avg['month_str'],
             y=monthly_avg['spot_pris'],
             mode='lines+markers+text',
@@ -68,7 +70,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             textposition='top center',
             textfont=dict(color='green')
         ))
-        fig2.add_trace(go.Scatter(
+        fig_price.add_trace(go.Scatter(
             x=monthly_avg['month_str'],
             y=monthly_avg['total_pris_per_kwh'],
             mode='lines+markers+text',
@@ -78,27 +80,32 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             textposition='top center',
             textfont=dict(color='black')
         ))
+        fig_price.update_layout(
+            title='Månedlig gennemsnitlig spotpris og totalpris',
+            xaxis_title='Måned',
+            yaxis_title='Pris (kr./kWh)',
+            height=400
+        )
+        st.plotly_chart(fig_price, use_container_width=True)
+
+        # Figure for usage
         if 'usage_kwh' in monthly_avg.columns:
-            fig2.add_trace(go.Bar(
+            fig_usage = go.Figure()
+            fig_usage.add_trace(go.Bar(
                 x=monthly_avg['month_str'],
                 y=monthly_avg['usage_kwh'],
                 name='Forbrug (kWh)',
                 marker_color='blue',
-                yaxis='y2',
-                opacity=0.4,
                 text=monthly_avg['usage_kwh'].round(0),
                 textposition='inside',
                 textfont=dict(color='white')
             ))
-            fig2.update_layout(
-                yaxis=dict(title='Pris (kr./kWh)'),
-                yaxis2=dict(title='Forbrug (kWh)', overlaying='y', side='right', showgrid=False),
+            fig_usage.update_layout(
+                title='Månedligt elforbrug',
+                xaxis_title='Måned',
+                yaxis_title='Forbrug (kWh)',
+                height=400
             )
-        fig2.update_layout(
-            title='Månedlig gennemsnitlig spotpris, totalpris og forbrug',
-            xaxis_title='Måned',
-            height=400
-        )
-        st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig_usage, use_container_width=True)
     else:
         st.warning('Data mangler for spotpris og/eller totalpris. Grafen kan ikke vises.')
