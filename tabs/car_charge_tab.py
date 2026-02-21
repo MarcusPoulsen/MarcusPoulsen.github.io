@@ -24,7 +24,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     total_cost = daily_car['total_charge_cost'].sum()
     avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
     st.markdown(f"#### Hjemmeopladning af elbil – samlet oversigt for perioden")
-    st.info("Denne side viser, hvor meget du selv betaler for din strøm, sammenlignet med den refusion, Clever udbetaler. Bemærk: Du får det mest præcise estimat, hvis du indtaster dit faktiske forbrug fra Clever-appen i felterne nedenfor.")
+    st.info("Her kan du se, hvad du betaler for strøm til bilen og hvor meget Clever refunderer. Hvis du ikke indtaster dit faktiske forbrug fra Clever-appen, vil refusionen og udgifterne kun være et lidt dårligere estimat og kan afvige mere fra det du ser i Clever-appen.")
     # Use session_state to persist net_label/net_value after editing, so we can show the info box at the top
     net_label_top = st.session_state.get('car_charge_net_label', '')
     net_value_top = st.session_state.get('car_charge_net_value', '')
