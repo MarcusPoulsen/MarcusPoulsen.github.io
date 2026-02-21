@@ -26,8 +26,3 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     fig.add_trace(go.Bar(x=avg_by_hour['time'], y=avg_by_hour['forbrug (kwh)'], name='Forbrug (kwh)'))
     fig.update_layout(title='Gennemsnitligt forbrug pr. time', xaxis_title='Time', yaxis_title='Forbrug (kwh)', height=400)
     st.plotly_chart(fig, width='stretch')
-    st.markdown('**Insights:**')
-    if not hourly_stats.empty:
-        peak_hour = avg_by_hour.loc[avg_by_hour['Avg Spot Pris'].idxmax(), 'Hour']
-        peak_price = avg_by_hour.loc[avg_by_hour['Avg Spot Pris'].idxmax(), 'Avg Spot Pris']
-        st.info(f'⚠️ Most expensive hour: {peak_hour}:00 (avg Spot Pris {peak_price:.3f} DKK/kWh)')
