@@ -13,14 +13,14 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         'total_udgift': 'mean'
     }).reset_index()
     avg_by_hour['gennemsnits strømpris alt inklusiv'] = avg_by_hour['total_udgift'] / avg_by_hour['usage_kwh']
-    avg_by_hour.columns = [
-        'time',
-        'forbrug (kwh)',
-        'gennemsnits spotpris betalt',
-        'tarif pris',
-        'gennemsnits strømpris alt inklusiv',
-        'total udgift kr'
-    ]
+    avg_by_hour = avg_by_hour.rename(columns={
+        'hour_of_day': 'time',
+        'usage_kwh': 'forbrug (kwh)',
+        'spot_pris': 'gennemsnits spotpris betalt',
+        'tarif_pris': 'tarif pris',
+        'total_pris_per_kwh': 'gennemsnits strømpris alt inklusiv',
+        'total_udgift': 'total udgift kr'
+    })
     st.dataframe(avg_by_hour, width='stretch')
     fig = go.Figure()
     fig.add_trace(go.Bar(x=avg_by_hour['Hour'], y=avg_by_hour['Avg Usage (kWh)'], name='Avg Usage (kWh)'))
