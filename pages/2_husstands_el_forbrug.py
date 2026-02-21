@@ -1,6 +1,7 @@
 import streamlit as st
 
 st.set_page_config(page_title="Hustands elforbrug og priser", layout="wide")
+st.title("Hustandens elforbrug og priser – Bedre indblik i dit elforbrug🔋")
 
 # Import tab modules
 from tabs.daily_summary_tab import render as render_daily_summary_tab
