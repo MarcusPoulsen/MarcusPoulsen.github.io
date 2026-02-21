@@ -27,7 +27,17 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     # Use session_state to persist net_label/net_value after editing, so we can show the info box at the top
     net_label_top = st.session_state.get('car_charge_net_label', '')
     net_value_top = st.session_state.get('car_charge_net_value', '')
-    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} kr./kWh</b>. {net_label_top} ({net_value_top})</div>", unsafe_allow_html=True)
+    n_months = max(1, ((to_date.year - from_date.year) * 12 + (to_date.month - from_date.month) + 1))
+    monthly_kwh = total_kwh / n_months
+    # Use the same style as the household summary, with all values bold
+    summary = f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>"
+    summary += f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden ({from_date} til {to_date}).<br>"
+    summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
+    summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
+    if net_label_top:
+        summary += f"{net_label_top} (<b>{net_value_top}</b>)<br>"
+    summary += "</div>"
+    st.markdown(summary, unsafe_allow_html=True)
     # Divider after summary info box
     st.divider()
     # --- Monthly aggregation for new bar chart ---
