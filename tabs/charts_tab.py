@@ -28,7 +28,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             name='Bil opladning (kr.)',
             marker_color='green',
             text=monthly['car_cost'].round(0),
-            textposition='outside'
+            textposition='inside'
         ))
         fig1.add_trace(go.Bar(
             x=monthly['month_str'],
@@ -36,7 +36,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             name='Resten af forbruget (kr.)',
             marker_color='red',
             text=monthly['house_cost'].round(0),
-            textposition='outside'
+            textposition='inside'
         ))
         fig1.update_layout(
             barmode='group',
