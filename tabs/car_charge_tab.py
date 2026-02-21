@@ -43,7 +43,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
         monthly_table = monthly_car[['month', 'car_kwh', 'avg_price', 'car_cost']].copy()
         monthly_table.columns = ['month', 'kWh opladet (automatisk detekteret)', 'average_price', 'total_price']
-        st.markdown('### Månedligt opladningsoversigt')
         clever_sats_df = pd.read_csv('clever_tilbagebetaling.csv')
         clever_sats_df['month'] = clever_sats_df['month'].astype(str)
         merged = pd.merge(monthly_table, clever_sats_df, on='month', how='left')
@@ -51,7 +50,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         merged = merged.rename(columns={'sats': 'clever_rate'})
         clever_kwh_col = []
         udeladning_kwh_col = []
-        st.markdown('#### Indtast værdier fra Clever app og udeladning for hver måned:')
+        st.markdown('#### For at få det mest præcise estimat, indtast værdier fra Clever app og udeladning for hver måned:')
         input_cols = st.columns(2)
         for i, r in merged.iterrows():
             m = r['month']
@@ -65,6 +64,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
                 udeladning_kwh_val = st.number_input(f"Udeladning kWh ({m})", min_value=0.0, value=default_udelad, step=0.01, key=key_udelad)
             clever_kwh_col.append(clever_kwh_val)
             udeladning_kwh_col.append(udeladning_kwh_val)
+        st.divider()
         merged['clever_kwh'] = clever_kwh_col
         merged['udeladning_kwh'] = udeladning_kwh_col
         # Calculate corrections and adjusted total on merged before using in bar chart
