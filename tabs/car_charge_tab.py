@@ -34,6 +34,14 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     summary += f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden ({from_date} til {to_date}).<br>"
     summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
     summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
+    # Calculate average price per month
+    monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
+    if not monthly_car.empty:
+        monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%Y')
+        monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
+        summary += "<br><b>Gennemsnitlig pris pr måned:</b><br>"
+        for _, row in monthly_car.iterrows():
+            summary += f"{row['month']}: <b>{row['avg_price']:.2f} kr/kWh</b><br>"
     if net_label_top:
         summary += f"{net_label_top} (<b>{net_value_top}</b>)<br>"
     summary += "</div>"
