@@ -13,20 +13,7 @@ from tabs.charts_tab import render as render_charts_tab
 
 import pandas as pd
 
-st.markdown("""
-<style>
-.stPageLinkButton {
-	background-color: #0099ff !important;
-	color: white !important;
-	font-size: 1.1em !important;
-	padding: 0.5em 1.2em !important;
-	border-radius: 6px !important;
-	margin-bottom: 1em !important;
-	border: none !important;
-}
-</style>
-""", unsafe_allow_html=True)
-st.page_link("app.py", label="Til Forside", icon="🏠", key="forside_link")
+st.page_link("app.py", label="Til Forside", icon="🏠")
 
 def _filter_df_by_view_range(df, view_range):
 	try:
