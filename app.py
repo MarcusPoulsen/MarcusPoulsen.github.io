@@ -136,7 +136,7 @@ if fetch_btn:
             st.session_state['df_data'] = df
             st.session_state['last_token'] = token
             st.session_state['udeladning_pris'] = udeladning_pris
-            st.success('✅ Data fetched and cached for this session')
+            st.success('✅ Data hentet og gemt til denne session')
         else:
             st.warning('No data fetched')
 
@@ -172,7 +172,6 @@ if not st.session_state['df_data'].empty:
     
     st.divider()
 
-    st.markdown("## Gå til siden 'Data Analyse' for at se detaljerede analyser og visninger af dine data.")
-    st.info("Klik på 'Data Analyse' i menuen til venstre for at se tabeller, grafer og statistik.")
+    st.markdown("### Gå til siden elbil opladning analyse for at se detaljerede analyser og visninger af dine data.")
     st.page_link("pages/1_elbil_opladning.py", label="Gå til elbil opladning analyse", icon="🚗")
     st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til husstands el-forbrug analyse", icon="🏠")
