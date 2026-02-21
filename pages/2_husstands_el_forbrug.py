@@ -63,13 +63,13 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	ai_message = None
 	if openai_api_key:
 		try:
-			response = openai.ChatCompletion.create(
+			client = openai.OpenAI(api_key=openai_api_key)
+			response = client.chat.completions.create(
 				model="gpt-3.5-turbo",
 				messages=[{"role": "system", "content": "Du er en hjælpsom energirådgiver."},
 						  {"role": "user", "content": prompt}],
 				max_tokens=120,
-				temperature=0.6,
-				api_key=openai_api_key
+				temperature=0.6
 			)
 			ai_message = response.choices[0].message.content.strip()
 		except Exception as e:
