@@ -36,7 +36,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
     summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
     # Tilføj vurdering om Clever-abonnementet kan svare sig
-    clever_msg = ""
+    clever_msg = "bla bla"
     try:
         # Find total udgift med og uden Clever fra display_table hvis muligt
         med_clever = None
