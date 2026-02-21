@@ -11,7 +11,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     df_tab['month'] = df_tab['time'].dt.to_period('M')
     # Sorter efter måned
     df_tab = df_tab.sort_values('month')
-    print(df_tab.head(5))
+    print(df_tab.columns)
     # Total pris for bil og resten (udregnet fra kWh og pris)
     if 'car_kwh' in df_tab.columns and 'house_kwh' in df_tab.columns:
         df_tab['car_cost'] = df_tab['car_kwh'] * df_tab['total_pris_per_kwh']
