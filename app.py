@@ -65,6 +65,7 @@ st.markdown(
 
 st.set_page_config(page_title='Elbil strømberegner', page_icon='⚡', layout='wide', initial_sidebar_state='auto')
 st.sidebar.title('Forside')
+st.sidebar.success("Select a demo above.")
 st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
 st.markdown("""
 Det kan være svært at gennemskue, hvad du reelt betaler for strømmen, når du oplader din elbil derhjemme. 
