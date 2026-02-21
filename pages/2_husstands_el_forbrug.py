@@ -63,18 +63,22 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	ai_message = None
 	if hf_token:
 		try:
-			api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-			headers = {"Authorization": f"Bearer {hf_token}"}
-			payload = {"inputs": prompt, "parameters": {"max_new_tokens": 120, "temperature": 0.6}}
+			api_url = "https://router.huggingface.co/completions"
+			headers = {"Authorization": f"Bearer {hf_token}", "Content-Type": "application/json"}
+			payload = {
+				"model": "mistralai/Mistral-7B-Instruct-v0.2",
+				"messages": [
+					{"role": "system", "content": "Du er en hjælpsom energirådgiver."},
+					{"role": "user", "content": prompt}
+				],
+				"max_tokens": 120,
+				"temperature": 0.6
+			}
 			response = requests.post(api_url, headers=headers, json=payload, timeout=30)
 			if response.status_code == 200:
 				result = response.json()
-				if isinstance(result, list) and len(result) > 0 and 'generated_text' in result[0]:
-					ai_message = result[0]['generated_text'].strip()
-				elif isinstance(result, dict) and 'generated_text' in result:
-					ai_message = result['generated_text'].strip()
-				elif isinstance(result, list) and len(result) > 0 and 'generated_text' in result[-1]:
-					ai_message = result[-1]['generated_text'].strip()
+				if "choices" in result and len(result["choices"]) > 0 and "message" in result["choices"][0]:
+					ai_message = result["choices"][0]["message"]["content"].strip()
 				else:
 					ai_message = str(result)
 			else:
