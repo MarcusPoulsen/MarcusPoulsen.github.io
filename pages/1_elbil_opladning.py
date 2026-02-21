@@ -3,14 +3,15 @@ import streamlit as st
 st.set_page_config(page_title="Data Analyse", layout="wide")
 
 st.title("Elbil opladning Analyse")
-
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
 
 
 import pandas as pd
 
-st.page_link("app.py", label="Til Forside", icon="🏠")
+st.page_link("app.py", label="Til Forside", icon="🏡")
+st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til husstands el-forbrug analyse", icon="🏠")
+
 
 def _filter_df_by_view_range(df, view_range):
 	try:
