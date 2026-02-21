@@ -34,14 +34,15 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     summary += f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden ({from_date} til {to_date}).<br>"
     summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
     summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
-    # Show average total power price per month (if available in df)
-    if 'total_pris_per_kwh' in df.columns:
-        monthly_total = df.set_index('time').resample('ME').agg({'total_pris_per_kwh': 'mean'}).reset_index()
-        if not monthly_total.empty:
-            monthly_total['month'] = monthly_total['time'].dt.strftime('%m-%Y')
-            summary += "<br><b>Gennemsnitlig samlet elpris pr måned:</b><br>"
-            for _, row in monthly_total.iterrows():
-                summary += f"{row['month']}: <b>{row['total_pris_per_kwh']:.2f} kr/kWh</b><br>"
+    # Show average monthly estimated charging price (from bar chart: adjusted_total)
+    # Recreate merged table logic to get adjusted_total per month
+    monthly_car = df_car.set_index('time').resample('ME').agg({'car_kwh': 'sum', 'car_cost': 'sum'}).reset_index()
+    if not monthly_car.empty:
+        monthly_car['month'] = monthly_car['time'].dt.strftime('%m-%Y')
+        monthly_car['avg_price'] = monthly_car.apply(lambda r: (r['car_cost'] / r['car_kwh']) if r['car_kwh'] > 0 else 0.0, axis=1)
+        # This is the same as the bar chart's 'adjusted_total' if no corrections
+        avg_monthly_cost = monthly_car['car_cost'].mean() if not monthly_car.empty else 0.0
+        summary += f"<br><b>Gennemsnitlig estimeret opladningspris pr måned:</b> <b>{avg_monthly_cost:.0f} kr</b><br>"
     if net_label_top:
         summary += f"{net_label_top} (<b>{net_value_top}</b>)<br>"
     summary += "</div>"
