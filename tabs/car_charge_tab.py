@@ -31,6 +31,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     monthly_kwh = total_kwh / n_months
     # Use the same style as the household summary, with all values bold
     summary = f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>"
+    summary += "Denne side viser, hvor meget du selv betaler for din strøm, sammenlignet med den refusion, Clever udbetaler. Bemærk: Du får det mest præcise estimat, hvis du indtaster dit faktiske forbrug fra Clever-appen i felterne nedenfor."
     summary += f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden ({from_date} til {to_date}).<br>"
     summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
     summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
