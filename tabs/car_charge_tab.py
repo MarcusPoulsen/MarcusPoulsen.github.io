@@ -20,17 +20,18 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     net_value = 'N/A'
     # Try to get from merged table if it exists (after monthly_table is created)
 
-    st.markdown('#### Hjemmeopladning af elbil - samlet oversigt for perioden')
+    total_kwh = daily_car['total_charge_kwh'].sum()
+    total_cost = daily_car['total_charge_cost'].sum()
+    avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
+    st.markdown(f"#### Hjemmeopladning af elbil - samlet oversigt for perioden")
+    st.info(f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>.", unsafe_allow_html=True)
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric('Total opladningspris for periode', f"{daily_car['total_charge_cost'].sum():.2f} DKK")
+        st.metric('Total opladningspris for periode', f"{total_cost:.2f} DKK")
     with c2:
-        st.metric('Total kwH opladet i periode', f"{daily_car['total_charge_kwh'].sum():.2f} kWh")
+        st.metric('Total kwH opladet i periode', f"{total_kwh:.2f} kWh")
     with c3:
-        total_kwh = daily_car['total_charge_kwh'].sum()
-        total_cost = daily_car['total_charge_cost'].sum()
-        avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
         st.metric('Gennemsnitlig kWh-pris for bil', f"{avg_price:.2f} DKK/kWh")
     # c4 will be filled after merged is created
     st.divider()
