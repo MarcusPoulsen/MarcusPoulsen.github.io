@@ -58,7 +58,27 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         monthly_avg = df_tab.groupby('month').agg(agg_dict).reset_index()
         monthly_avg['month_str'] = monthly_avg['month'].dt.strftime('%b %Y')
 
-        # Figure for prices
+        # Figure for usage (first)
+        if 'usage_kwh' in monthly_avg.columns:
+            fig_usage = go.Figure()
+            fig_usage.add_trace(go.Bar(
+                x=monthly_avg['month_str'],
+                y=monthly_avg['usage_kwh'],
+                name='Forbrug (kWh)',
+                marker_color='blue',
+                text=monthly_avg['usage_kwh'].round(0),
+                textposition='inside',
+                textfont=dict(color='white')
+            ))
+            fig_usage.update_layout(
+                title='Månedligt elforbrug',
+                xaxis_title='Måned',
+                yaxis_title='Forbrug (kWh)',
+                height=400
+            )
+            st.plotly_chart(fig_usage, use_container_width=True)
+
+        # Figure for prices (second)
         fig_price = go.Figure()
         fig_price.add_trace(go.Scatter(
             x=monthly_avg['month_str'],
@@ -87,25 +107,5 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
             height=400
         )
         st.plotly_chart(fig_price, use_container_width=True)
-
-        # Figure for usage
-        if 'usage_kwh' in monthly_avg.columns:
-            fig_usage = go.Figure()
-            fig_usage.add_trace(go.Bar(
-                x=monthly_avg['month_str'],
-                y=monthly_avg['usage_kwh'],
-                name='Forbrug (kWh)',
-                marker_color='blue',
-                text=monthly_avg['usage_kwh'].round(0),
-                textposition='inside',
-                textfont=dict(color='white')
-            ))
-            fig_usage.update_layout(
-                title='Månedligt elforbrug',
-                xaxis_title='Måned',
-                yaxis_title='Forbrug (kWh)',
-                height=400
-            )
-            st.plotly_chart(fig_usage, use_container_width=True)
     else:
         st.warning('Data mangler for spotpris og/eller totalpris. Grafen kan ikke vises.')
