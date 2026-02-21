@@ -42,6 +42,24 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	from_date = df['time'].dt.date.min()
 	to_date = df['time'].dt.date.max()
 
+	# --- AI summary block ---
+	total_usage = df['usage_kwh'].sum()
+	total_cost = df['total_udgift'].sum() if 'total_udgift' in df.columns else (df['usage_kwh'] * df['total_pris_per_kwh']).sum()
+	avg_price = (df['total_pris_per_kwh'].mean() if 'total_pris_per_kwh' in df.columns else None)
+	peak_hour = df['time'].dt.hour[df['spot_pris'].idxmax()] if 'spot_pris' in df.columns else None
+	peak_price = df['spot_pris'].max() if 'spot_pris' in df.columns else None
+	summary_lines = [
+		f"**AI-analyse af perioden {from_date} til {to_date}:**",
+		f"- Dit samlede elforbrug var **{total_usage:.0f} kWh**.",
+		f"- Din samlede udgift var **{total_cost:.0f} kr.**.",
+	]
+	if avg_price:
+		summary_lines.append(f"- Gennemsnitlig pris: **{avg_price:.2f} kr./kWh**.")
+	if peak_hour is not None and peak_price is not None:
+		summary_lines.append(f"- Dyreste time: **kl. {peak_hour}:00** med **{peak_price:.2f} kr./kWh**.")
+	st.info("\n".join(summary_lines))
+	# --- End AI summary block ---
+
 	st.markdown("### Grafer")
 	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
 	st.divider()
