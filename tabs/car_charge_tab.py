@@ -24,6 +24,10 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     total_cost = daily_car['total_charge_cost'].sum()
     avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
     st.markdown(f"#### Hjemmeopladning af elbil - samlet oversigt for perioden")
+    # Use session_state to persist net_label/net_value after editing, so we can show the info box at the top
+    net_label_top = st.session_state.get('car_charge_net_label', '')
+    net_value_top = st.session_state.get('car_charge_net_value', '')
+    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>. {net_label_top} ({net_value_top})</div>", unsafe_allow_html=True)
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -233,8 +237,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
             net_value = f"{net_price_total:.2f} DKK"
         with c4:
             st.metric(net_label, net_value)
-        # Show summary info box here, using the same net_label/net_value as c4
-        st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>. {net_label} ({net_value})</div>", unsafe_allow_html=True)
+        # Store the latest net_label/net_value in session_state for the next rerun
+        st.session_state['car_charge_net_label'] = net_label
+        st.session_state['car_charge_net_value'] = net_value
         
         # Export CSV with new column order and names
         csv = edited[[
@@ -259,5 +264,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         # If no monthly data, still show the net_price metric (fallback to N/A)
         with c4:
             st.metric(net_label, net_value)
-        st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>. {net_label} ({net_value})</div>", unsafe_allow_html=True)
+        st.session_state['car_charge_net_label'] = net_label
+        st.session_state['car_charge_net_value'] = net_value
         st.info('Ingen månedlig opladningsdata i valgt periode')
