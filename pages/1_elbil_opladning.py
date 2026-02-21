@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dataanalyse", layout="wide")
 
-st.title("Opladning af elbil, forbrug og udgifter – fokuseret på Clever-kunder🟢")
+st.title("Opladning af elbil, forbrug og udgifter – fokuseret på Clever-kunder 🟢")
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
 
