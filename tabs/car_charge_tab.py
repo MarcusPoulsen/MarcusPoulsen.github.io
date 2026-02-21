@@ -24,6 +24,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     total_cost = daily_car['total_charge_cost'].sum()
     avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
     st.markdown(f"#### Hjemmeopladning af elbil – samlet oversigt for perioden")
+    st.info("Denne side viser, hvor meget du selv betaler for din strøm, sammenlignet med den refusion, Clever udbetaler. Bemærk: Du får det mest præcise estimat, hvis du indtaster dit faktiske forbrug fra Clever-appen i felterne nedenfor.")
     # Use session_state to persist net_label/net_value after editing, so we can show the info box at the top
     net_label_top = st.session_state.get('car_charge_net_label', '')
     net_value_top = st.session_state.get('car_charge_net_value', '')
@@ -31,7 +32,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     monthly_kwh = total_kwh / n_months
     # Use the same style as the household summary, with all values bold
     summary = f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>"
-    summary += "Denne side viser, hvor meget du selv betaler for din strøm, sammenlignet med den refusion, Clever udbetaler. Bemærk: Du får det mest præcise estimat, hvis du indtaster dit faktiske forbrug fra Clever-appen i felterne nedenfor."
     summary += f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden ({from_date} til {to_date}).<br>"
     summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
     summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
