@@ -30,17 +30,20 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         st.plotly_chart(fig1, use_container_width=True)
 
     # Månedlig gennemsnitlig spotpris og totalpris
-    monthly_avg = df_tab.groupby('month').agg({
-        'spot_pris': 'mean',
-        'total_pris_per_kwh': 'mean'
-    }).reset_index()
-    fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=monthly_avg['month'], y=monthly_avg['spot_pris'], mode='lines+markers', name='Gns. spotpris (kr./kWh)', line=dict(color='green')))
-    fig2.add_trace(go.Scatter(x=monthly_avg['month'], y=monthly_avg['total_pris_per_kwh'], mode='lines+markers', name='Gns. totalpris (kr./kWh)', line=dict(color='black')))
-    fig2.update_layout(
-        title='Månedlig gennemsnitlig spotpris og totalpris',
-        xaxis_title='Måned',
-        yaxis_title='Pris (kr./kWh)',
-        height=400
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+    if 'spot_pris' in df_tab.columns and 'total_pris_per_kwh' in df_tab.columns:
+        monthly_avg = df_tab.groupby('month').agg({
+            'spot_pris': 'mean',
+            'total_pris_per_kwh': 'mean'
+        }).reset_index()
+        fig2 = go.Figure()
+        fig2.add_trace(go.Scatter(x=monthly_avg['month'], y=monthly_avg['spot_pris'], mode='lines+markers', name='Gns. spotpris (kr./kWh)', line=dict(color='green')))
+        fig2.add_trace(go.Scatter(x=monthly_avg['month'], y=monthly_avg['total_pris_per_kwh'], mode='lines+markers', name='Gns. totalpris (kr./kWh)', line=dict(color='black')))
+        fig2.update_layout(
+            title='Månedlig gennemsnitlig spotpris og totalpris',
+            xaxis_title='Måned',
+            yaxis_title='Pris (kr./kWh)',
+            height=400
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.warning('Data mangler for spotpris og/eller totalpris. Grafen kan ikke vises.')
