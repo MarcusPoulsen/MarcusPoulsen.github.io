@@ -5,11 +5,8 @@ st.set_page_config(page_title="Data Analyse", layout="wide")
 st.title("Data Analyse")
 
 # Import tab modules
-from tabs.daily_summary_tab import render as render_daily_summary_tab
 from tabs.car_charge_tab import render as render_car_charge_tab
-from tabs.data_table_tab import render as render_data_table_tab
-from tabs.hourly_stats_tab import render as render_hourly_stats_tab
-from tabs.charts_tab import render as render_charts_tab
+
 
 import pandas as pd
 
@@ -46,17 +43,6 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 
 	st.markdown("### Clever refusion vs pris på opladning")
 	render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris)
-	st.divider()
-	st.markdown("### Data Deep dive")
-	render_data_table_tab(df, from_date, to_date, _filter_df_by_view_range)
-	st.divider()
-	st.markdown("### Daily Summary")
-	render_daily_summary_tab(df, from_date, to_date, _filter_df_by_view_range)
-	st.divider()
-	st.markdown("### Hourly Stats")
-	render_hourly_stats_tab(df, from_date, to_date, _filter_df_by_view_range)
-	st.divider()
-	st.markdown("### Charts")
-	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
+
 else:
 	st.warning("Ingen data fundet. Gå til forsiden og hent data først.")

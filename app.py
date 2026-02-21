@@ -174,4 +174,4 @@ if not st.session_state['df_data'].empty:
 
     st.markdown("## Gå til siden 'Data Analyse' for at se detaljerede analyser og visninger af dine data.")
     st.info("Klik på 'Data Analyse' i menuen til venstre for at se tabeller, grafer og statistik.")
-    st.page_link("pages/data_analyse.py", label="Gå til Data Analyse", icon="📊")
+    st.page_link("pages/elbil_opladning.py", label="Gå til Data Analyse", icon="📊")
