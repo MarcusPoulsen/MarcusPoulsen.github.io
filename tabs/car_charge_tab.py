@@ -20,7 +20,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     net_value = 'N/A'
     # Try to get from merged table if it exists (after monthly_table is created)
 
-    st.markdown('##### Hjemmeopladning af elbil - estimeret forbrug og udgift')
+    st.markdown('#### Hjemmeopladning af elbil - amlet oversigt for perioden')
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -217,9 +217,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         if 'Netto strøm pris' in edited.columns:
             net_price_total = edited['Netto strøm pris'].sum()
             if net_price_total < 0:
-                net_label = 'Clever har tilbagebetalt dig mere end du har betalt for din strøm til bilen'
+                net_label = 'Clever har tilbagebetalt mere end du har betalt for strøm til bilen'
             else:
-                net_label = 'Clever har tilbagebetalt dig mindre end du har betalt for din strøm til bilen'
+                net_label = 'Clever har tilbagebetalt mindre end du har betalt for strøm til bilen'
             net_value = f"{net_price_total:.2f} DKK"
         with c4:
             st.metric(net_label, net_value)

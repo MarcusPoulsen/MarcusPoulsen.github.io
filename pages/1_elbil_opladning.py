@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="Data Analyse", layout="wide")
 
 st.title("Opladning af elbil, forbrug og udgifter - fokuseret på Clever kunder")
-st.info('Denne side viser hvor meget du selv betaler for din strøm, holdt op i mod den refusion Clever betaler')
+st.info('Denne side viser hvor meget du selv betaler for din strøm, holdt op i mod den refusion Clever betaler.')
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
 
