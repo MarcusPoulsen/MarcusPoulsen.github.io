@@ -1,17 +1,17 @@
 import streamlit as st
 
-st.set_page_config(page_title="Data Analyse", layout="wide")
+st.set_page_config(page_title="Dataanalyse", layout="wide")
 
-st.title("Opladning af elbil, forbrug og udgifter - fokuseret på Clever kunder")
-st.info('Denne side viser hvor meget du selv betaler for din strøm, holdt op i mod den refusion Clever betaler. OBS du får det mest præcise estimat, hvis du udfylder faktisk forbrug fra din Clever app i kasserne nedenfor.')
+st.title("Opladning af elbil, forbrug og udgifter – fokuseret på Clever-kunder")
+st.info('Denne side viser, hvor meget du selv betaler for din strøm, sammenlignet med den refusion, Clever udbetaler. Bemærk: Du får det mest præcise estimat, hvis du indtaster dit faktiske forbrug fra Clever-appen i felterne nedenfor.')
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
 
 
 import pandas as pd
 
-st.page_link("app.py", label="Til Forside", icon="⚡️")
-st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til husstands el-forbrug analyse", icon="🏠")
+st.page_link("app.py", label="Til forsiden", icon="⚡️")
+st.page_link("pages/2_husstands_el_forbrug.py", label="Gå til analyse af husstandens elforbrug", icon="🏠")
 
 
 def _filter_df_by_view_range(df, view_range):
@@ -46,4 +46,4 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris)
 
 else:
-	st.warning("Ingen data fundet. Gå til forsiden og hent data først.")
+	st.warning("Ingen data fundet. Gå til forsiden, og hent data først.")

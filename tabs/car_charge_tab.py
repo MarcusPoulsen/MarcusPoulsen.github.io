@@ -23,11 +23,11 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     total_kwh = daily_car['total_charge_kwh'].sum()
     total_cost = daily_car['total_charge_cost'].sum()
     avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
-    st.markdown(f"#### Hjemmeopladning af elbil - samlet oversigt for perioden")
+    st.markdown(f"#### Hjemmeopladning af elbil – samlet oversigt for perioden")
     # Use session_state to persist net_label/net_value after editing, so we can show the info box at the top
     net_label_top = st.session_state.get('car_charge_net_label', '')
     net_value_top = st.session_state.get('car_charge_net_value', '')
-    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>. {net_label_top} ({net_value_top})</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} kr./kWh</b>. {net_label_top} ({net_value_top})</div>", unsafe_allow_html=True)
     # Divider after summary info box
     st.divider()
     # --- Monthly aggregation for new bar chart ---
@@ -46,7 +46,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         merged = merged.rename(columns={'sats': 'clever_rate'})
         clever_kwh_col = []
         udeladning_kwh_col = []
-        st.markdown('#### For at få det mest præcise estimat, indtast værdier fra Clever app og udeladning for hver måned:')
+        st.markdown('#### For at få det mest præcise estimat, indtast værdier fra Clever-appen og udeladning for hver måned:')
         input_cols = st.columns(2)
         for i, r in merged.iterrows():
             m = r['month']
@@ -55,7 +55,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
             default_kwh = float(st.session_state.get(key_kwh, r['kWh opladet (automatisk detekteret)']))
             default_udelad = float(st.session_state.get(key_udelad, 0.0))
             with input_cols[0]:
-                clever_kwh_val = st.number_input(f"KwH iflg. Clever ({m})", min_value=0.0, value=default_kwh, step=0.01, key=key_kwh)
+                clever_kwh_val = st.number_input(f"kWh ifølge Clever ({m})", min_value=0.0, value=default_kwh, step=0.01, key=key_kwh)
             with input_cols[1]:
                 udeladning_kwh_val = st.number_input(f"Udeladning kWh ({m})", min_value=0.0, value=default_udelad, step=0.01, key=key_udelad)
             clever_kwh_col.append(clever_kwh_val)
@@ -74,7 +74,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['adjusted_total'],
-            name='Estimeret opladningspris (DKK)',
+            name='Estimeret opladningspris (kr.)',
             marker_color='red',
             text=monthly_agg['adjusted_total'].round(0),
             textposition='inside',
@@ -82,19 +82,19 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         fig_car.add_trace(go.Bar(
             x=monthly_agg['month'],
             y=monthly_agg['reimbursed'],
-            name='Clever refusion (DKK)',
+            name='Clever-refusion (kr.)',
             marker_color='green',
             text=monthly_agg['reimbursed'].round(0),
             textposition='inside',
         ))
         fig_car.update_layout(
             barmode='group',
-            title='Sammenlign hvad du selv har betalt for hjemmeopladning af bilen med hvad Clever har refunderet:',
+            title='Sammenlign, hvad du selv har betalt for hjemmeopladning af bilen, med hvad Clever har refunderet:',
             xaxis_title='Periode',
-            yaxis_title='DKK',
+            yaxis_title='kr.',
             height=450
         )
-        st.markdown('### Månedlig opladningspris vs Clever refusion')
+        st.markdown('### Månedlig opladningspris vs. Clever-refusion')
         st.plotly_chart(fig_car, width='stretch', key='car_charge_bar_chart')
 
         # --- Prepare display table (single instance) ---
@@ -120,7 +120,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         display_table['total_udgift_uden_clever_abbonemnt'] = display_table['adjusted_total'] + 70 - display_table['clever_kwh'] * clever_multiplier + display_table['udeladning_cost']
 
         # --- New bar chart: Price with and without Clever ---
-        st.markdown('### Månedlig udgift: Med og uden Clever')
+        st.markdown('### Månedlig udgift: med og uden Clever')
         fig_with_without = go.Figure()
         fig_with_without.add_trace(go.Bar(
             x=display_table['month'],
@@ -140,9 +140,9 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         ))
         fig_with_without.update_layout(
             barmode='group',
-            title='Sammenlign din totale udgift med og uden Clever, inklusiv eventuel udeladning',
+            title='Sammenlign din totale udgift med og uden Clever, inklusive eventuel udeladning',
             xaxis_title='Måned',
-            yaxis_title='DKK',
+            yaxis_title='kr.',
             height=400
         )
         st.plotly_chart(fig_with_without, use_container_width=True, key='with_without_clever_bar_chart')
@@ -255,4 +255,4 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
         # If no monthly data, still show the net_price metric (fallback to N/A)
         st.session_state['car_charge_net_label'] = net_label
         st.session_state['car_charge_net_value'] = net_value
-        st.info('Ingen månedlig opladningsdata i valgt periode')
+        st.info('Ingen månedlig opladningsdata i den valgte periode')
