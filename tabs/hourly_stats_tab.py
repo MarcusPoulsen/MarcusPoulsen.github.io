@@ -5,13 +5,15 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
     df_tab = df.copy()
     hourly_stats = df_tab.copy()
     hourly_stats['hour_of_day'] = hourly_stats['time'].dt.hour
-    avg_by_hour = hourly_stats.groupby('hour_of_day').agg({
-        'usage_kwh': 'mean',
-        'spot_pris': 'mean',
+    grouped = hourly_stats.groupby('hour_of_day').agg({
+        'usage_kwh': 'sum',
+        'spot_cost_dkk': 'sum',
         'tarif_pris': 'first',
         'total_pris_per_kwh': 'mean',
         'total_udgift': 'mean'
     }).reset_index()
+    grouped['spot_pris_betalt'] = grouped['spot_cost_dkk'] / grouped['usage_kwh']
+    avg_by_hour = grouped
     avg_by_hour['gennemsnits strømpris alt inklusiv'] = avg_by_hour['total_udgift'] / avg_by_hour['usage_kwh']
     avg_by_hour = avg_by_hour.rename(columns={
         'hour_of_day': 'time',
