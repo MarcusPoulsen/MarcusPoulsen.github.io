@@ -24,7 +24,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     total_cost = daily_car['total_charge_cost'].sum()
     avg_price = (total_cost / total_kwh) if total_kwh > 0 else 0.0
     st.markdown(f"#### Hjemmeopladning af elbil - samlet oversigt for perioden")
-    st.info(f"Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>.", unsafe_allow_html=True)
+    st.markdown(f"<div style='background-color:#f0f2f6;padding:10px;border-radius:5px;'>Du har opladet <b>{total_kwh:.2f} kWh</b> i perioden, og det har i gennemsnit kostet <b>{avg_price:.2f} DKK/kWh</b>.</div>", unsafe_allow_html=True)
     # We'll fill net_price_total after merged is created (monthly table)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
