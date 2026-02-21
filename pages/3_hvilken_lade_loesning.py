@@ -9,10 +9,11 @@ c1, c2, c3 = st.columns(3)
 km_per_year = c1.number_input("Km om året", min_value=0, value=20000, step=100)
 consumption_per_100km = c2.number_input("Elbil forbrug (kWh/100 km)", min_value=0.0, value=20.0, step=0.1)
 ladetab_pct = c3.number_input("Antaget ladetab (%)", min_value=0.0, max_value=100.0, value=8.0, step=0.1)
+
 hjemme_pct = c1.number_input("Hjemmeopladning procent (%)", min_value=0.0, max_value=100.0, value=90.0, step=0.1)
-saeson_effekt = c2.radio("Sæson effekt medregnes?", ["ja", "nej"], index=0)
+ude_pris_kwh = c2.number_input("Udeladning pris pr kWh (DKK)", min_value=0.0, value=2.5, step=0.01)
+saeson_effekt = c3.radio("Sæson effekt medregnes?", ["ja", "nej"], index=0)
 hjemme_pris_kwh = c3.number_input("Hjemmeladning pris pr kWh (DKK)", min_value=0.0, value=1.0, step=0.01)
-ude_pris_kwh = st.number_input("Udeladning pris pr kWh (DKK)", min_value=0.0, value=2.5, step=0.01)
 
 # Calculation
 months = 12
