@@ -63,7 +63,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.set_page_config(page_title='Elbil strømberegner', page_icon='⚡', layout='wide', initial_sidebar_state='auto')
+st.set_page_config(page_title='Elbil strømberegner', page_icon='⚡', layout='wide', initial_sidebar_state='hide')
 st.sidebar.title('Forside')
 st.sidebar.success("Select a demo above.")
 st.title('⚡ Strømforbrug og omkostninger - Eloverblik Dashboard')
