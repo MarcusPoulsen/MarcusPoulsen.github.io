@@ -65,8 +65,6 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
                 udeladning_kwh_val = st.number_input(f"Udeladning kWh ({m})", min_value=0.0, value=default_udelad, step=0.01, key=key_udelad)
             clever_kwh_col.append(clever_kwh_val)
             udeladning_kwh_col.append(udeladning_kwh_val)
-            st.session_state[key_kwh] = clever_kwh_val
-            st.session_state[key_udelad] = udeladning_kwh_val
         merged['clever_kwh'] = clever_kwh_col
         merged['udeladning_kwh'] = udeladning_kwh_col
         # Calculate corrections and adjusted total on merged before using in bar chart
