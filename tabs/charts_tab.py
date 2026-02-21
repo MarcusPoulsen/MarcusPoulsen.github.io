@@ -65,13 +65,13 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
                 x=monthly_avg['month_str'],
                 y=monthly_avg['usage_kwh'],
                 name='Forbrug (kWh)',
-                marker_color='blue',
+                marker_color='dodgerblue',
                 text=monthly_avg['usage_kwh'].round(0),
                 textposition='inside',
                 textfont=dict(color='white')
             ))
             fig_usage.update_layout(
-                title='Månedligt elforbrug',
+                title='Månedligt elforbrug (kWh)',
                 xaxis_title='Måned',
                 yaxis_title='Forbrug (kWh)',
                 height=400
