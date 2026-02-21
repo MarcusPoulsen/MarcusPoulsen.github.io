@@ -43,10 +43,10 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	to_date = df['time'].dt.date.max()
 
 
-	# --- OpenAI summary block ---
-	import openai
+	# --- Hugging Face summary block ---
+	import requests
 	import os
-	openai_api_key = st.secrets["openai_api_key"] if "openai_api_key" in st.secrets else os.getenv("OPENAI_API_KEY")
+	hf_token = st.secrets["hf_token"] if "hf_token" in st.secrets else os.getenv("HF_TOKEN")
 	total_usage = df['usage_kwh'].sum()
 	total_cost = df['total_udgift'].sum() if 'total_udgift' in df.columns else (df['usage_kwh'] * df['total_pris_per_kwh']).sum()
 	avg_price = (df['total_pris_per_kwh'].mean() if 'total_pris_per_kwh' in df.columns else None)
@@ -61,23 +61,30 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	Dyreste time: kl. {peak_hour}:00 med {peak_price:.2f} kr./kWh
 	"""
 	ai_message = None
-	if openai_api_key:
+	if hf_token:
 		try:
-			client = openai.OpenAI(api_key=openai_api_key)
-			response = client.chat.completions.create(
-				model="gpt-3.5-turbo",
-				messages=[{"role": "system", "content": "Du er en hjælpsom energirådgiver."},
-						  {"role": "user", "content": prompt}],
-				max_tokens=120,
-				temperature=0.6
-			)
-			ai_message = response.choices[0].message.content.strip()
+			api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+			headers = {"Authorization": f"Bearer {hf_token}"}
+			payload = {"inputs": prompt, "parameters": {"max_new_tokens": 120, "temperature": 0.6}}
+			response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+			if response.status_code == 200:
+				result = response.json()
+				if isinstance(result, list) and len(result) > 0 and 'generated_text' in result[0]:
+					ai_message = result[0]['generated_text'].strip()
+				elif isinstance(result, dict) and 'generated_text' in result:
+					ai_message = result['generated_text'].strip()
+				elif isinstance(result, list) and len(result) > 0 and 'generated_text' in result[-1]:
+					ai_message = result[-1]['generated_text'].strip()
+				else:
+					ai_message = str(result)
+			else:
+				ai_message = f"Hugging Face API fejl: {response.status_code} - {response.text}"
 		except Exception as e:
 			ai_message = f"Kunne ikke hente AI-besked: {e}"
 	else:
-		ai_message = "Ingen OpenAI API-nøgle fundet. Tilføj den som 'openai_api_key' i Streamlit secrets eller som miljøvariabel 'OPENAI_API_KEY'."
+		ai_message = "Ingen Hugging Face token fundet. Tilføj den som 'hf_token' i Streamlit secrets eller som miljøvariabel 'HF_TOKEN'."
 	st.info(ai_message)
-	# --- End OpenAI summary block ---
+	# --- End Hugging Face summary block ---
 
 	st.markdown("### Grafer")
 	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
