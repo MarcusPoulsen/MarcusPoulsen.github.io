@@ -174,10 +174,4 @@ if not st.session_state['df_data'].empty:
 
     st.markdown("## Gå til siden 'Data Analyse' for at se detaljerede analyser og visninger af dine data.")
     st.info("Klik på 'Data Analyse' i menuen til venstre for at se tabeller, grafer og statistik.")
-    st.markdown("""
-        <a href="/Data%20Analyse" target="_self">
-            <button style='font-size:1.1em;padding:0.5em 1em;margin-top:1em;background:#0099ff;color:white;border:none;border-radius:4px;'>
-                Gå til Data Analyse
-            </button>
-        </a>
-    """, unsafe_allow_html=True)
+    st.link_button("Gå til Data Analyse", url="/Data%20Analyse")
