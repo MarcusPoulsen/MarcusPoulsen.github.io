@@ -4,8 +4,6 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
-
-    st.markdown('## 🚗 Clever refusion vs pris på opladning')
     # Removed date filter, use full range
     df_tab = df.copy()
 
