@@ -12,7 +12,7 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         'total_pris_per_kwh': 'mean',
         'total_udgift': 'mean'
     }).reset_index()
-    avg_by_hour['gennemsnits strømpris alt inklusiv'] = avg_by_hour['Avg Total Cost (DKK)'] / avg_by_hour['Avg Usage (kWh)']
+    avg_by_hour['gennemsnits strømpris alt inklusiv'] = avg_by_hour['total_udgift'] / avg_by_hour['usage_kwh']
     avg_by_hour.columns = [
         'time',
         'forbrug (kwh)',
