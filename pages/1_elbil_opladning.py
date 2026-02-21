@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dataanalyse", layout="wide")
 
-st.title("Opladning af elbil, forbrug og udgifter – fokuseret på Clever-kunder")
+st.title("Opladning af elbil, forbrug og udgifter – fokuseret på Clever-kunder🟢")
 st.info('Denne side viser, hvor meget du selv betaler for din strøm, sammenlignet med den refusion, Clever udbetaler. Bemærk: Du får det mest præcise estimat, hvis du indtaster dit faktiske forbrug fra Clever-appen i felterne nedenfor.')
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
