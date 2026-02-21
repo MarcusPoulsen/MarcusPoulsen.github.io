@@ -161,17 +161,4 @@ if not st.session_state['df_data'].empty:
     df['afgift_pris'] = df.get('afgift_pris', pd.Series(0.0))
     df['total_pris_per_kwh'] = df['spot_pris'].fillna(0) + df['tarif_pris'].fillna(0) + df['afgift_pris'].fillna(0)
 
-    st.markdown(f"### Hustandsforbrug og udgifter {from_date} til {to_date}")
-    # Summary metrics
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.metric('Total forbrug for hele perioden', f"{df['usage_kwh'].sum():.1f} kWh")
-    with col2:
-        st.metric('Total udgift for hele perioden', f"{df['total_udgift'].sum():.2f} DKK")
-    with col3:
-        st.metric('Gennemsnitlig daglig udgift', f"{df.groupby(df['time'].dt.date)['total_udgift'].sum().mean():.2f} DKK")
-    with col4:
-        st.metric('Gennemsnitlig spotpris for hele perioden', f"{df['spot_pris'].mean():.3f} DKK/kWh")
-    with col5:
-        st.metric('Gennemsnitlig totalpris for hele perioden', f"{df['total_pris_per_kwh'].mean():.3f} DKK/kWh")
     
