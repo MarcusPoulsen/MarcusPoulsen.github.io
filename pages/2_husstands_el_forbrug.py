@@ -43,52 +43,28 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	to_date = df['time'].dt.date.max()
 
 
-	# --- Hugging Face summary block ---
-	import requests
-	import os
-	hf_token = st.secrets["hf_token"] if "hf_token" in st.secrets else os.getenv("HF_TOKEN")
+	# --- Rule-based summary block ---
 	total_usage = df['usage_kwh'].sum()
 	total_cost = df['total_udgift'].sum() if 'total_udgift' in df.columns else (df['usage_kwh'] * df['total_pris_per_kwh']).sum()
 	avg_price = (df['total_pris_per_kwh'].mean() if 'total_pris_per_kwh' in df.columns else None)
 	peak_hour = df['time'].dt.hour[df['spot_pris'].idxmax()] if 'spot_pris' in df.columns else None
 	peak_price = df['spot_pris'].max() if 'spot_pris' in df.columns else None
-	prompt = f"""
-	Du er en hjælpsom energirådgiver. Brug tallene nedenfor til at skrive en kort, brugervenlig opsummering og evt. et råd til brugeren:
-	Periode: {from_date} til {to_date}
-	Samlet elforbrug: {total_usage:.0f} kWh
-	Samlet udgift: {total_cost:.0f} kr.
-	Gennemsnitlig pris: {avg_price:.2f} kr./kWh
-	Dyreste time: kl. {peak_hour}:00 med {peak_price:.2f} kr./kWh
-	"""
-	ai_message = None
-	if hf_token:
-		try:
-			api_url = "https://router.huggingface.co/completions"
-			headers = {"Authorization": f"Bearer {hf_token}", "Content-Type": "application/json"}
-			payload = {
-				"model": "google/gemma-7b-it",
-				"messages": [
-					{"role": "system", "content": "Du er en hjælpsom energirådgiver."},
-					{"role": "user", "content": prompt}
-				],
-				"max_tokens": 120,
-				"temperature": 0.6
-			}
-			response = requests.post(api_url, headers=headers, json=payload, timeout=30)
-			if response.status_code == 200:
-				result = response.json()
-				if "choices" in result and len(result["choices"]) > 0 and "message" in result["choices"][0]:
-					ai_message = result["choices"][0]["message"]["content"].strip()
-				else:
-					ai_message = str(result)
-			else:
-				ai_message = f"Hugging Face API fejl: {response.status_code} - {response.text}"
-		except Exception as e:
-			ai_message = f"Kunne ikke hente AI-besked: {e}"
-	else:
-		ai_message = "Ingen Hugging Face token fundet. Tilføj den som 'hf_token' i Streamlit secrets eller som miljøvariabel 'HF_TOKEN'."
-	st.info(ai_message)
-	# --- End Hugging Face summary block ---
+	summary = f"**Periode:** {from_date} til {to_date}\n"
+	summary += f"- Samlet elforbrug: **{total_usage:.0f} kWh**\n"
+	summary += f"- Samlet udgift: **{total_cost:.0f} kr.**\n"
+	if avg_price:
+		summary += f"- Gennemsnitlig pris: **{avg_price:.2f} kr./kWh**\n"
+	if peak_hour is not None and peak_price is not None:
+		summary += f"- Dyreste time: **kl. {peak_hour}:00** med **{peak_price:.2f} kr./kWh**\n"
+	# Simple advice based on thresholds
+	if avg_price and avg_price > 3.0:
+		summary += "💡 Prisen har været høj. Overvej at flytte forbrug til billigere timer, hvis muligt.\n"
+	elif avg_price and avg_price < 1.5:
+		summary += "✅ Du har haft en lav gennemsnitspris. Godt gået!\n"
+	if total_usage > 1000:
+		summary += "⚠️ Dit forbrug er højt. Overvej energibesparende tiltag.\n"
+	st.info(summary)
+	# --- End rule-based summary block ---
 
 	st.markdown("### Grafer")
 	render_charts_tab(df, from_date, to_date, _filter_df_by_view_range)
