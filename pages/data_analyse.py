@@ -13,6 +13,8 @@ from tabs.charts_tab import render as render_charts_tab
 
 import pandas as pd
 
+st.page_link("app.py", label="Til Forside", icon="🏠")
+
 def _filter_df_by_view_range(df, view_range):
 	try:
 		if isinstance(view_range, tuple) and len(view_range) == 2:
