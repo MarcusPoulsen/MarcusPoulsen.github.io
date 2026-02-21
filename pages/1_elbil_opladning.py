@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Data Analyse", layout="wide")
 
-st.title("Elbil opladning Analyse")
+st.title("Opladning af elbil, forbrug og udgifter")
 # Import tab modules
 from tabs.car_charge_tab import render as render_car_charge_tab
 
@@ -42,7 +42,6 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	to_date = df['time'].dt.date.max()
 	udeladning_pris = st.session_state.get('udeladning_pris', 3.5)
 
-	st.markdown("### Clever refusion vs pris på opladning")
 	render_car_charge_tab(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris)
 
 else:
