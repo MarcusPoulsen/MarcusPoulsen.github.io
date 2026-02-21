@@ -99,7 +99,7 @@ with col_date:
         to_date = date_range
 with col_charge:
     charge_threshold = st.number_input(
-        'Elbil oplader detektering grænse (kWh)',
+        'Oplader elbilen? Grænse for kWh/time',
         min_value=0.0,
         value=5.0,
         step=0.1,
