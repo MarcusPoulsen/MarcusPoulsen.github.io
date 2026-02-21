@@ -22,10 +22,10 @@ def render(df, from_date, to_date, _filter_df_by_view_range):
         }).reset_index()
         monthly['month_str'] = monthly['month'].dt.strftime('%b %Y')
         fig1 = go.Figure()
-        fig1.add_trace(go.Bar(x=monthly['month_str'], y=monthly['car_cost'], name='Bil opladning (kr.)', marker_color='blue'))
-        fig1.add_trace(go.Bar(x=monthly['month_str'], y=monthly['house_cost'], name='Resten af forbruget (kr.)', marker_color='orange'))
+        fig1.add_trace(go.Bar(x=monthly['month_str'], y=monthly['car_cost'], name='Bil opladning (kr.)', marker_color='green'))
+        fig1.add_trace(go.Bar(x=monthly['month_str'], y=monthly['house_cost'], name='Resten af forbruget (kr.)', marker_color='red'))
         fig1.update_layout(
-            barmode='stack',
+            barmode='group',
             title='Månedlig totaludgift: bil vs. resten',
             xaxis_title='Måned',
             yaxis_title='Total pris (kr.)',
