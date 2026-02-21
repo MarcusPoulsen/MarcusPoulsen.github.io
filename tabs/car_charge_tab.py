@@ -36,28 +36,33 @@ def render(df, from_date, to_date, _filter_df_by_view_range, udeladning_pris):
     summary += f"Det svarer til <b>{monthly_kwh:.1f} kWh</b> pr måned.<br>"
     summary += f"Din gennemsnitlige pris for opladning er <b>{avg_price:.2f} kr pr kWh</b>.<br>"
     # Tilføj vurdering om Clever-abonnementet kan svare sig
-    clever_msg = "bla bla"
+    clever_msg = ""
     try:
-        # Find total udgift med og uden Clever fra display_table hvis muligt
         med_clever = None
         uden_clever = None
-        if 'total_udgift_ved_clever_abbonemnt' in locals() or 'display_table' in locals():
-            # Prøv at bruge display_table hvis det findes
-            if 'display_table' in locals():
-                med_clever = display_table['total_udgift_ved_clever_abbonemnt'].sum() if 'total_udgift_ved_clever_abbonemnt' in display_table.columns else None
-                uden_clever = display_table['total_udgift_uden_clever_abbonemnt'].sum() if 'total_udgift_uden_clever_abbonemnt' in display_table.columns else None
+        # Brug display_table hvis det findes
+        if 'display_table' in locals() or 'display_table' in globals():
+            try:
+                med_clever = display_table['total_udgift_ved_clever_abbonemnt'].sum()
+                uden_clever = display_table['total_udgift_uden_clever_abbonemnt'].sum()
+            except Exception:
+                med_clever = None
+                uden_clever = None
         # Alternativt prøv monthly_car hvis display_table ikke findes
-        if med_clever is None or uden_clever is None:
-            if 'monthly_car' in locals():
+        if (med_clever is None or uden_clever is None) and 'monthly_car' in locals():
+            try:
                 med_clever = monthly_car['car_cost'].sum() + 799 * n_months
                 uden_clever = monthly_car['car_cost'].sum() + 70 * n_months
+            except Exception:
+                med_clever = None
+                uden_clever = None
         if med_clever is not None and uden_clever is not None:
             if med_clever > uden_clever:
                 clever_msg = "<span style='color:#d9534f'><b>Bemærk:</b> Baseret på det du har tastet ind, kan det ikke svare sig at have Clever-abonnement, givet dine opladnings- og udeopladningsbehov.</span><br>"
             else:
                 clever_msg = "<span style='color:#5cb85c'><b>Bemærk:</b> Baseret på det du har tastet ind, kan det svare sig at have Clever-abonnement, givet dine opladnings- og udeopladningsbehov.</span><br>"
     except Exception:
-        pass
+        clever_msg = ""
     summary += clever_msg
     # Show average monthly estimated charging price (from bar chart: adjusted_total)
     # Recreate merged table logic to get adjusted_total per month
