@@ -285,10 +285,11 @@ def fetch_power_data(refresh_token=None, charge_threshold: float = 5.0, car_max_
     df_merged['tariff_cost_dkk'] = df_merged['usage_kwh'] * df_merged['tariff_dkk_per_kwh']
     df_merged['afgift_cost_dkk'] = df_merged['usage_kwh'] * df_merged['afgift_dkk_per_kwh']
     df_merged['total_cost_dkk'] = df_merged['spot_cost_dkk'] + df_merged['tariff_cost_dkk'] + df_merged['afgift_cost_dkk']
+    df_merged['total_pris_per_kwh'] = df_merged['total_cost_dkk'] / df_merged['usage_kwh']
     
     # Select and order columns
-    df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'tariff_dkk_per_kwh', 'afgift_dkk_per_kwh', 'total_cost_dkk']].copy()
-    df_result.columns = ['time', 'usage_kwh', 'spot_pris', 'tarif_pris', 'afgift_pris', 'total_udgift']
+    df_result = df_merged[['time', 'usage_kwh', 'DKK_per_kWh', 'tariff_dkk_per_kwh', 'afgift_dkk_per_kwh', 'total_cost_dkk', 'total_pris_per_kwh']].copy()
+    df_result.columns = ['time', 'usage_kwh', 'spot_pris', 'tarif_pris', 'afgift_pris', 'total_udgift', 'total_pris_per_kwh']
     df_result = df_result.sort_values('time').reset_index(drop=True)
     # Detect car charging and allocate kWh based on thresholds provided
     try:
