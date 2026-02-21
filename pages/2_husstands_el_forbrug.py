@@ -48,11 +48,27 @@ if 'df_data' in st.session_state and not st.session_state['df_data'].empty:
 	total_cost = df['total_udgift'].sum() if 'total_udgift' in df.columns else (df['usage_kwh'] * df['total_pris_per_kwh']).sum()
 	avg_price = (df['total_pris_per_kwh'].mean() if 'total_pris_per_kwh' in df.columns else None)
 	peak_price = df['spot_pris'].max() if 'spot_pris' in df.columns else None
+	# Calculate period in months
+	n_months = max(1, ((to_date.year - from_date.year) * 12 + (to_date.month - from_date.month) + 1))
+	# Monthly averages
+	monthly_usage = total_usage / n_months
+	# Car and house usage/costs
+	car_kwh = df['car_kwh'].sum() if 'car_kwh' in df.columns else 0.0
+	house_kwh = df['house_kwh'].sum() if 'house_kwh' in df.columns else (total_usage - car_kwh)
+	car_cost = (df['car_kwh'] * df['total_pris_per_kwh']).sum() if 'car_kwh' in df.columns else 0.0
+	house_cost = (df['house_kwh'] * df['total_pris_per_kwh']).sum() if 'house_kwh' in df.columns else (total_cost - car_cost)
+	avg_house_price = (house_cost / house_kwh) if house_kwh > 0 else 0.0
+	avg_car_price = (car_cost / car_kwh) if car_kwh > 0 else 0.0
+	monthly_car_kwh = car_kwh / n_months
+	# Main summary
 	summary = f"**Periode:** {from_date} til {to_date}\n"
 	summary += f"- Samlet elforbrug: **{total_usage:.0f} kWh**\n"
 	summary += f"- Samlet udgift: **{total_cost:.0f} kr.**\n"
 	if avg_price:
 		summary += f"- Gennemsnitlig pris: **{avg_price:.2f} kr./kWh**\n"
+	# Describe user's data
+	summary += f"\nDu bruger i gns {monthly_usage:.1f} kWh pr måned, heraf går der normalt {monthly_car_kwh:.1f} til bilen. "
+	summary += f"Dit forbrug til huset koster i gns {avg_house_price:.2f} kr pr kWh, og dit forbrug til bilen koster i gns {avg_car_price:.2f} kr pr kWh.\n"
 	# Simple advice based on thresholds
 	if avg_price and avg_price > 2.0:
 		summary += "💡 Prisen har været høj. Overvej at flytte forbrug til billigere timer, hvis muligt.\n"
